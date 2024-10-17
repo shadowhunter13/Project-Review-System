@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:backgroundTint="@color/white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Faculty">
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/bell"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="370dp"/>
+
+    <LinearLayout
+        android:id="@+id/Dashboard_Researcher"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/block_background">
+
+        <!-- First Row for Images -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/Research"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/review"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="In Review"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:layout_gravity="center" />
+
+            <EditText
+                android:id="@+id/Total_edit"
+                android:layout_width="60dp"
+                android:layout_height="50dp"
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/block_background"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <!-- Second Column for Images -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/Total"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/total"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Projects"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:layout_marginTop="5dp"
+                android:layout_gravity="center" />
+
+            <EditText
+                android:id="@+id/Total_alloted"
+                android:layout_width="60dp"
+                android:layout_height="50dp"
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/block_background"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <!-- Third Column for Images -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/Pending"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/pending"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pending"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:layout_marginTop="5dp"
+                android:layout_gravity="center" />
+
+            <EditText
+                android:id="@+id/Total_pending"
+                android:layout_width="60dp"
+                android:layout_height="50dp"
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/block_background"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <!-- Fourth Column for Images -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/Done"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/done"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Done"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:layout_marginTop="5dp"
+                android:layout_gravity="center" />
+
+            <EditText
+                android:id="@+id/Total_done"
+                android:layout_width="60dp"
+                android:layout_height="50dp"
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/block_background"
+                android:layout_gravity="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ScrollView with LinearLayout for Persons -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/Dashboard_Researcher"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/block_background">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- First Person's Linear Layout -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/block_background">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:src="@drawable/done"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/circle_background"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="John Doe"
+                    android:layout_marginStart="10dp"
+                    android:textColor="@color/black"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Designer"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="-75dp"
+                    android:textColor="@color/gray"
+                    android:textSize="18sp" />
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="Send"
+                    android:layout_marginStart="110dp"
+                    android:layout_marginTop="20dp"
+                    android:backgroundTint="@color/gray" />
+            </LinearLayout>
+
+            <!-- Second Person's Linear Layout -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/block_background">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:src="@drawable/done"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/circle_background"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Michael Johnson"
+                    android:textColor="@color/black"
+                    android:layout_marginStart="10dp"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Project Manager"
+                    android:layout_marginStart="-150dp"
+                    android:layout_marginTop="20dp"
+                    android:textColor="@color/gray"
+                    android:textSize="18sp" />
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="Send"
+                    android:layout_marginStart="55dp"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/gray" />
+            </LinearLayout>
+
+            <!-- Third Person's Linear Layout -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/block_background">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:src="@drawable/done"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/circle_background"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jane Smith"
+                    android:layout_marginStart="10dp"
+                    android:textColor="@color/black"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Developer"
+                    android:layout_marginStart="-100dp"
+                    android:layout_marginTop="20dp"
+                    android:textColor="@color/gray"
+                    android:textSize="18sp" />
+
+                <Button
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="Send"
+                    android:layout_marginStart="110dp"
+                    android:layout_marginTop="10dp"
+
+                    android:backgroundTint="@color/gray" />
+            </LinearLayout>
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/done"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/circle_background"
+                android:scaleType="centerCrop" />
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/done"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/circle_background"
+                android:scaleType="centerCrop" />
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/done"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/circle_background"
+                android:scaleType="centerCrop" />
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/done"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/circle_background"
+                android:scaleType="centerCrop" /> <ImageView
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/done"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/circle_background"
+            android:scaleType="centerCrop" /> <ImageView
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:src="@drawable/done"
+            android:layout_marginStart="10dp"
+            android:background="@drawable/circle_background"
+            android:scaleType="centerCrop" />
+
+
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
