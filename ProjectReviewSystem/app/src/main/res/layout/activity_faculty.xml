@@ -1,32 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:backgroundTint="@color/white"
+    android:orientation="vertical"
+    android:background="@color/white"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Faculty">
 
+    <!-- Notification Icon -->
     <ImageView
+        android:id="@+id/bell"
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:src="@drawable/bell"
+        android:layout_gravity="end"
         android:layout_marginTop="10dp"
-        android:layout_marginStart="370dp"/>
+        android:layout_marginEnd="10dp" />
 
+    <!-- Dashboard Section -->
     <LinearLayout
         android:id="@+id/Dashboard_Researcher"
         android:layout_width="match_parent"
         android:layout_height="180dp"
         android:orientation="horizontal"
-        android:layout_marginTop="50dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
+        android:layout_margin="10dp"
         android:background="@drawable/block_background">
 
-        <!-- First Row for Images -->
+        <!-- In Review Section -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -38,29 +41,29 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:src="@drawable/review"
-                android:layout_marginTop="20dp"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="In Review"
-                android:layout_marginTop="5dp"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-                android:layout_gravity="center" />
+                android:textSize="13sp"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp" />
 
             <EditText
                 android:id="@+id/Total_edit"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
-                android:backgroundTint="#D3D3D3"
-                android:layout_marginTop="10dp"
+                android:layout_gravity="center"
                 android:background="@drawable/block_background"
-                android:layout_gravity="center" />
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp" />
         </LinearLayout>
 
-        <!-- Second Column for Images -->
+        <!-- Total Projects Section -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -71,30 +74,30 @@
                 android:id="@+id/Total"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginTop="20dp"
                 android:src="@drawable/total"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Total Projects"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-                android:layout_marginTop="5dp"
-                android:layout_gravity="center" />
+                android:textSize="13sp"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp" />
 
             <EditText
                 android:id="@+id/Total_alloted"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
-                android:backgroundTint="#D3D3D3"
-                android:layout_marginTop="10dp"
+                android:layout_gravity="center"
                 android:background="@drawable/block_background"
-                android:layout_gravity="center" />
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp" />
         </LinearLayout>
 
-        <!-- Third Column for Images -->
+        <!-- Pending Section -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -105,30 +108,30 @@
                 android:id="@+id/Pending"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginTop="20dp"
                 android:src="@drawable/pending"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Pending"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-                android:layout_marginTop="5dp"
-                android:layout_gravity="center" />
+                android:textSize="13sp"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp" />
 
             <EditText
                 android:id="@+id/Total_pending"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
-                android:backgroundTint="#D3D3D3"
-                android:layout_marginTop="10dp"
+                android:layout_gravity="center"
                 android:background="@drawable/block_background"
-                android:layout_gravity="center" />
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp" />
         </LinearLayout>
 
-        <!-- Fourth Column for Images -->
+        <!-- Done Section -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -139,38 +142,36 @@
                 android:id="@+id/Done"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:layout_marginTop="20dp"
                 android:src="@drawable/done"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Done"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-                android:layout_marginTop="5dp"
-                android:layout_gravity="center" />
+                android:textSize="13sp"
+                android:layout_gravity="center"
+                android:layout_marginTop="5dp" />
 
             <EditText
                 android:id="@+id/Total_done"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
-                android:backgroundTint="#D3D3D3"
-                android:layout_marginTop="10dp"
+                android:layout_gravity="center"
                 android:background="@drawable/block_background"
-                android:layout_gravity="center" />
+                android:backgroundTint="#D3D3D3"
+                android:layout_marginTop="10dp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- ScrollView with LinearLayout for Persons -->
+    <!-- Persons List -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/Dashboard_Researcher"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="10dp"
         android:background="@drawable/block_background">
 
         <LinearLayout
@@ -178,7 +179,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- First Person's Linear Layout -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -198,155 +198,239 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="John Doe"
-                    android:layout_marginStart="10dp"
                     android:textColor="@color/black"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:layout_marginStart="10dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Designer"
-                    android:layout_marginTop="20dp"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:layout_marginStart="-75dp"
-                    android:textColor="@color/gray"
-                    android:textSize="18sp" />
+                    android:layout_marginTop="20dp" />
 
                 <Button
+                    android:id="@+id/fb1"
                     android:layout_width="100dp"
                     android:layout_height="50dp"
                     android:text="Send"
-                    android:layout_marginStart="110dp"
-                    android:layout_marginTop="20dp"
-                    android:backgroundTint="@color/gray" />
+                    android:backgroundTint="@color/colorWarning"
+                    android:layout_marginStart="65dp"
+                    android:layout_marginTop="20dp" />
             </LinearLayout>
 
-            <!-- Second Person's Linear Layout -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/block_background">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:src="@drawable/done"
                     android:layout_marginStart="10dp"
+                    android:layout_marginTop="20dp"
                     android:background="@drawable/circle_background"
                     android:scaleType="centerCrop" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Michael Johnson"
+                    android:text="John Doe"
                     android:textColor="@color/black"
-                    android:layout_marginStart="10dp"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="10dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Project Manager"
-                    android:layout_marginStart="-150dp"
-                    android:layout_marginTop="20dp"
-                    android:textColor="@color/gray"
-                    android:textSize="18sp" />
+                    android:text="Designer"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:layout_marginStart="-75dp"
+                    android:layout_marginTop="40dp" />
 
                 <Button
+                    android:id="@+id/fb2"
                     android:layout_width="100dp"
                     android:layout_height="50dp"
                     android:text="Send"
-                    android:layout_marginStart="55dp"
-                    android:layout_marginTop="10dp"
-                    android:backgroundTint="@color/gray" />
+                    android:backgroundTint="@color/colorWarning"
+                    android:layout_marginStart="65dp"
+                    android:layout_marginTop="30dp" />
             </LinearLayout>
-
-            <!-- Third Person's Linear Layout -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/block_background">
+                android:orientation="horizontal">
 
                 <ImageView
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:src="@drawable/done"
                     android:layout_marginStart="10dp"
+                    android:layout_marginTop="20dp"
                     android:background="@drawable/circle_background"
                     android:scaleType="centerCrop" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Jane Smith"
-                    android:layout_marginStart="10dp"
+                    android:text="John Doe"
+                    android:layout_marginTop="20dp"
                     android:textColor="@color/black"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:layout_marginStart="10dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Developer"
-                    android:layout_marginStart="-100dp"
-                    android:layout_marginTop="20dp"
-                    android:textColor="@color/gray"
-                    android:textSize="18sp" />
+                    android:text="Designer"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:layout_marginStart="-75dp"
+                    android:layout_marginTop="40dp" />
 
                 <Button
+                    android:id="@+id/fb3"
                     android:layout_width="100dp"
                     android:layout_height="50dp"
                     android:text="Send"
-                    android:layout_marginStart="110dp"
-                    android:layout_marginTop="10dp"
-
-                    android:backgroundTint="@color/gray" />
+                    android:backgroundTint="@color/colorWarning"
+                    android:layout_marginStart="65dp"
+                    android:layout_marginTop="30dp" />
             </LinearLayout>
-            <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/done"
-                android:layout_marginStart="10dp"
-                android:background="@drawable/circle_background"
-                android:scaleType="centerCrop" />
-            <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/done"
-                android:layout_marginStart="10dp"
-                android:background="@drawable/circle_background"
-                android:scaleType="centerCrop" />
-            <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/done"
-                android:layout_marginStart="10dp"
-                android:background="@drawable/circle_background"
-                android:scaleType="centerCrop" />
-            <ImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/done"
-                android:layout_marginStart="10dp"
-                android:background="@drawable/circle_background"
-                android:scaleType="centerCrop" /> <ImageView
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:src="@drawable/done"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/circle_background"
-            android:scaleType="centerCrop" /> <ImageView
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:src="@drawable/done"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/circle_background"
-            android:scaleType="centerCrop" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:src="@drawable/done"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/circle_background"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="John Doe"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Designer"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:layout_marginStart="-85dp"
+                    android:layout_marginTop="40dp" />
+
+                <Button
+                    android:id="@+id/fb4"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="Send"
+                    android:backgroundTint="@color/colorWarning"
+                    android:layout_marginStart="75dp"
+                    android:layout_marginTop="30dp" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:src="@drawable/done"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/circle_background"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="John Doe"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Designer"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:layout_marginStart="-75dp"
+                    android:layout_marginTop="40dp" />
+
+                <Button
+                    android:id="@+id/fb5"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="Send"
+                    android:backgroundTint="@color/colorWarning"
+                    android:layout_marginStart="65dp"
+                    android:layout_marginTop="30dp" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:src="@drawable/done"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/circle_background"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="John Doe"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Designer"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:layout_marginStart="-75dp"
+                    android:layout_marginTop="40dp" />
+
+                <Button
+                    android:id="@+id/fb6"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
+                    android:text="Send"
+                    android:backgroundTint="@color/colorWarning"
+                    android:layout_marginStart="65dp"
+                    android:layout_marginTop="30dp" />
+            </LinearLayout>
+
+
 
 
 
         </LinearLayout>
     </ScrollView>
-</RelativeLayout>
+</LinearLayout>

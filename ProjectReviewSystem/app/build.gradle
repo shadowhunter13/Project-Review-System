@@ -37,9 +37,14 @@ dependencies {
     implementation libs.constraintlayout
 
     implementation platform(libs.firebase.bom)
+    implementation libs.firebase.firestore
     implementation libs.google.firebase.auth
     implementation libs.firebase.database
+    implementation libs.glide
+    annotationProcessor libs.compiler
+
     implementation libs.play.services.auth
+    implementation libs.swiperefreshlayout
 
     // Testing dependencies
     testImplementation libs.junit

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/rounded_background"
+    android:backgroundTint="@color/white"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Document Upload"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:paddingBottom="16dp"
+        android:gravity="center" />
+
+    <Button
+        android:id="@+id/button_upload_file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Upload File"
+        android:background="@drawable/block_background"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/text_view_file_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No file selected"
+        android:layout_marginTop="8dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/colorAccent" />
+
+    <EditText
+        android:id="@+id/edit_text_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter project description"
+        android:inputType="textMultiLine"
+        android:padding="10dp"
+        android:background="@drawable/rounded_edit_text"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/text_view_deadline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="16dp"
+        android:text="Select Project Deadline"
+        android:textSize="16sp"
+        android:textColor="@color/colorPrimaryDark"/>
+
+    <Button
+        android:id="@+id/button_select_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Choose Date"
+        android:background="@drawable/block_background"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/button_send_request"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Send Request"
+        android:background="@drawable/block_background"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

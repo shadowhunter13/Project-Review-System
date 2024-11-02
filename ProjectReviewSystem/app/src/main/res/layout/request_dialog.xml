@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New Request"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:paddingBottom="16dp"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/text_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Description will appear here."
+        android:textSize="16sp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/text_deadline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Deadline will appear here."
+        android:textSize="16sp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/button_open_document"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Open Document"
+        android:background="@drawable/block_background"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/button_accept"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Accept Request"
+        android:background="@drawable/block_background"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/button_reject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Reject Request"
+        android:background="@drawable/block_background"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

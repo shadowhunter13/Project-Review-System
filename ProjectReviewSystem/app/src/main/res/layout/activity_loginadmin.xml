@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
-    android:backgroundTint="@color/white"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:backgroundTint="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_above="@+id/bottom_rectangle"
         android:layout_marginBottom="16dp">
 
         <ImageView
@@ -24,12 +24,12 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Login"
+            android:text="Sign In"
             android:textSize="40sp"
-        android:layout_marginTop="-10dp"
-        android:textColor="@color/black"
-        android:layout_marginStart="10dp"
-        android:textStyle="bold" />
+            android:layout_marginTop="-10dp"
+            android:textColor="@color/black"
+            android:layout_marginStart="10dp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="match_parent"
@@ -120,7 +120,7 @@
         <EditText
             android:id="@+id/go_ogle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:background="@drawable/rounded_edit_text"
             android:padding="10dp"
             android:layout_marginStart="10dp"
@@ -135,17 +135,16 @@
 
     </LinearLayout>
 
-
     <ImageView
         android:id="@+id/bottom_rectangle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/rect"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="0dp" />
+        android:layout_marginTop="16dp" />
+
     <Button
         android:id="@+id/login_button"
-        android:layout_width="130dp"
+        android:layout_width="140dp"
         android:layout_height="50dp"
         android:backgroundTint="@color/white"
         android:text="Login"
@@ -153,7 +152,9 @@
         android:textAlignment="textStart"
         android:drawableEnd="@drawable/arrow"
         android:textColor="@color/black"
-        android:layout_marginTop="570dp"
-        android:layout_marginStart="260dp"/>
+        android:layout_marginTop="-126dp"
+        android:layout_gravity="end"
+        android:layout_marginEnd="20dp"
+        tools:ignore="RtlCompat" />
 
-</RelativeLayout>
+</LinearLayout>

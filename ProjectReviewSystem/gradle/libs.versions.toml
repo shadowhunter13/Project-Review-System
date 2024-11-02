@@ -3,8 +3,10 @@ activityVersion = "1.7.2"
 agp = "8.5.1"
 androidxJunit = "1.1.5"
 appcompatVersion = "1.6.1"
+compiler = "4.12.0"
 espressoCoreVersion = "3.5.1"
 firebaseBom = "33.4.0"
+glide = "4.12.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
@@ -16,13 +18,17 @@ googleGmsGoogleServices = "4.4.2"
 firebaseAuth = "23.0.0"
 materialVersion = "1.9.0"
 playServicesAuth = "21.2.0"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
 activity-v172 = { module = "androidx.activity:activity", version.ref = "activityVersion" }
 appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 espresso-core-v351 = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCoreVersion" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-database = { module = "com.google.firebase:firebase-database" }
+firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 google-firebase-auth = { module = "com.google.firebase:firebase-auth" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -35,6 +41,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 material-v190 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

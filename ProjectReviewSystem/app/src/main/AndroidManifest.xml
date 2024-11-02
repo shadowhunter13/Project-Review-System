@@ -30,7 +30,7 @@
             android:name=".Faculty"
             android:exported="false" />
         <activity
-            android:name=".Admin"
+            android:name=".AdminActivity"
             android:exported="false" />
         <activity
             android:name=".Login"

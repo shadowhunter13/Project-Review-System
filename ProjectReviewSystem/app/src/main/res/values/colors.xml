@@ -1,6 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="gray">#D3D3D3</color>
+    <!-- Primary Colors -->
+    <color name="colorPrimary">#007BFF</color> <!-- Bright Blue -->
+    <color name="colorPrimaryDark">#0056b3</color> <!-- Dark Blue -->
+    <color name="colorAccent">#FF4081</color> <!-- Pink Accent -->
+
+    <!-- Neutral Colors -->
+    <color name="white">#FFFFFF</color> <!-- White Background -->
+    <color name="colorSurface">#F7F7F7</color> <!-- Light Gray Surface -->
+    <color name="colorOnPrimary">#FFFFFF</color> <!-- Text on Primary -->
+    <color name="black">#212121</color> <!-- Dark Text on Surface -->
+    <color name="colorOnBackground">#212121</color> <!-- Dark Text on Background -->
+
+    <!-- Text Colors -->
+    <color name="textColorPrimary">#212121</color> <!-- Primary Text Color -->
+    <color name="textColorSecondary">#757575</color> <!-- Secondary Text Color -->
+    <color name="textColorHint">#BDBDBD</color> <!-- Hint Text Color -->
+
+    <!-- Border and Divider Colors -->
+    <color name="dividerColor">#E0E0E0</color> <!-- Light Gray Divider -->
+    <color name="borderColor">#BDBDBD</color> <!-- Gray Border -->
+
+    <!-- Success and Error Colors -->
+    <color name="colorSuccess">#4CAF50</color> <!-- Green for Success -->
+    <color name="colorError">#F44336</color> <!-- Red for Error -->
+
+    <!-- Additional Colors -->
+    <color name="colorInfo">#2196F3</color> <!-- Blue for Information -->
+    <color name="colorWarning">#FF9800</color> <!-- Orange for Warnings -->
 </resources>

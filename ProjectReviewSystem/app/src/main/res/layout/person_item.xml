@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginTop="20dp"
+    android:background="@drawable/block_background">
+
+    <ImageView
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:src="@drawable/done"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/circle_background"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="10dp">
+
+        <TextView
+            android:id="@+id/personName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="John Doe"
+            android:textColor="@color/colorOnBackground"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/personRole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Designer"
+            android:textColor="@color/colorOnBackground"
+            android:textSize="18sp"
+            android:layout_marginTop="5dp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/sendButton"
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:text="Send"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginStart="auto"
+        android:layout_marginTop="10dp" />
+</LinearLayout>
