@@ -41,8 +41,10 @@ dependencies {
     implementation libs.google.firebase.auth
     implementation libs.firebase.database
     implementation libs.glide
+    implementation libs.circleimageview
     annotationProcessor libs.compiler
-
+    implementation libs.glide // Check for the latest version
+    annotationProcessor libs.compiler
     implementation libs.play.services.auth
     implementation libs.swiperefreshlayout
 

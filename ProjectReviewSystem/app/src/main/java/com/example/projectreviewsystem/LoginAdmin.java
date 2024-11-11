@@ -49,9 +49,9 @@ public class LoginAdmin extends AppCompatActivity {
         googleSignIn.setOnClickListener(v -> startGoogleSignIn());
         loginButton.setOnClickListener(v -> signInWithEmail());
 
-        if (firebaseAuth.getCurrentUser() != null) {
-            redirectToAdminDashboard();
-        }
+//        if (firebaseAuth.getCurrentUser() != null) {
+//            redirectToAdminDashboard();
+//        }
     }
 
     private void configureGoogleSignIn() {

@@ -1,8 +1,10 @@
 package com.example.projectreviewsystem;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
@@ -13,99 +15,115 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class AdminActivity extends AppCompatActivity {
 
     private Uri selectedFileUri;
+    private ImageView bellIcon;
     private String selectedDeadline;
     private TextView fileNameTextView;  // TextView for file name
     private TextView deadlineTextView;
     private FirebaseFirestore firestore;
 
-    // Arrays to hold IDs of layout elements
-    private final int[] facultyLayoutIds = {
-            R.id.faculty_1, R.id.faculty_2, R.id.faculty_3,
-            R.id.faculty_4, R.id.faculty_5, R.id.faculty_6
-    };
-    private final int[] facultyImageIds = {
-            R.id.imageView1, R.id.imageView2, R.id.imageView3,
-            R.id.imageView4, R.id.imageView5, R.id.imageView6
-    };
-    private final int[] facultyNameIds = {
-            R.id.textView1, R.id.textView2, R.id.textView3,
-            R.id.textView4, R.id.textView5, R.id.textView6
-    };
-
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
         firestore = FirebaseFirestore.getInstance();
 
-        Button sendButton1 = findViewById(R.id.s1);
-        Button sendButton2 = findViewById(R.id.s2);
-        Button sendButton3 = findViewById(R.id.s3);
-        Button sendButton4 = findViewById(R.id.s4);
-        Button sendButton5 = findViewById(R.id.s5);
-        Button sendButton6 = findViewById(R.id.s6);
+        bellIcon = findViewById(R.id.bell_icon);
+        bellIcon.setOnClickListener(v -> showNotificationsDialog());
 
-        sendButton1.setOnClickListener(v -> showBottomSheetDialog());
-        sendButton2.setOnClickListener(v -> showBottomSheetDialog());
-        sendButton3.setOnClickListener(v -> showBottomSheetDialog());
-        sendButton4.setOnClickListener(v -> showBottomSheetDialog());
-        sendButton5.setOnClickListener(v -> showBottomSheetDialog());
-        sendButton6.setOnClickListener(v -> showBottomSheetDialog());
+        // Initialize buttons and set click listeners
+        for (int i = 1; i <= 6; i++) {
+            int buttonId = getResources().getIdentifier("s" + i, "id", getPackageName());
+            Button sendButton = findViewById(buttonId);
+            sendButton.setOnClickListener(v -> showBottomSheetDialog());
+        }
 
         fetchFacultyData(); // Call to fetch faculty data
+        listenForNotifications(); // Call to listen for notifications
     }
 
     private void fetchFacultyData() {
         firestore.collection("faculty")
-                .get()
+                .get() // Fetch all documents in the "faculty" collection
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        int facultyIndex = 0;
+                        int facultyCount = 1; // Counter for faculty layouts
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String facultyName = document.getString("name");
-                            String facultyImageUrl = document.getString("imageUrl");
+                            String facultyImageUrl = document.getString("profile_photo"); // Use profilePhoto field
 
-                            // Update the faculty layout if the index is valid
-                            if (facultyIndex < facultyLayoutIds.length) {
-                                LinearLayout facultyLayout = findViewById(facultyLayoutIds[facultyIndex]);
-                                facultyLayout.setVisibility(View.VISIBLE); // Make the layout visible
-
-                                // Update the faculty image
-                                ImageView facultyImageView = facultyLayout.findViewById(facultyImageIds[facultyIndex]);
-                                Glide.with(this)
-                                        .load(facultyImageUrl)
-                                        .into(facultyImageView); // Load the image
-
-                                // Update the faculty name
-                                TextView facultyNameTextView = facultyLayout.findViewById(facultyNameIds[facultyIndex]);
-                                facultyNameTextView.setText(facultyName); // Set the name
-
-                                facultyIndex++;
-                            } else {
-                                Log.w("AdminActivity", "Too many faculty members. Only displaying the first " + facultyLayoutIds.length);
-                                break; // Prevent index out of bounds
-                            }
+                            // Populate the existing faculty layout based on the count
+                            populateFacultyLayout(facultyCount, facultyName, facultyImageUrl);
+                            facultyCount++;
                         }
                     } else {
                         Log.e("AdminActivity", "Error fetching faculty data: ", task.getException());
                     }
                 });
+    }
+
+    private void populateFacultyLayout(int facultyIndex, String name, String imageUrl) {
+        // Get the layout ID dynamically based on the index
+        int layoutId = getResources().getIdentifier("faculty_" + facultyIndex, "id", getPackageName());
+        LinearLayout facultyLayout = findViewById(layoutId);
+
+        if (facultyLayout != null) {
+            // Set the faculty name
+            TextView facultyNameTextView = facultyLayout.findViewById(getResources().getIdentifier("textView" + facultyIndex, "id", getPackageName()));
+            facultyNameTextView.setText(name); // Set the name
+
+            // Load the faculty image using Glide
+            CircleImageView facultyImageView = facultyLayout.findViewById(getResources().getIdentifier("imageView" + facultyIndex, "id", getPackageName()));
+            Glide.with(this)
+                    .load(imageUrl)
+                    .error(R.drawable.logo) // Optional: Error image if loading fails
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Log.e("GlideError", "Image load failed for URL: " + imageUrl, e);
+                            return false; // Return false to allow Glide to handle the error placeholder
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            Log.d("GlideSuccess", "Image loaded successfully for URL: " + imageUrl);
+                            return false; // Return false if you want Glide to handle the resource
+                        }
+                    })
+                    .into(facultyImageView); // Load the image into the ImageView
+
+            // Set up the button click listener
+            Button sendButton = facultyLayout.findViewById(getResources().getIdentifier("s" + facultyIndex, "id", getPackageName()));
+            sendButton.setOnClickListener(v -> showBottomSheetDialog());
+        } else {
+            Log.e("AdminActivity", "Faculty layout not found for index: " + facultyIndex);
+        }
     }
 
     private void showBottomSheetDialog() {
@@ -128,7 +146,12 @@ public class AdminActivity extends AppCompatActivity {
 
         sendRequestButton.setOnClickListener(v -> {
             String description = descriptionEditText.getText().toString();
-            sendRequestToFaculty(description);
+            // Check if description, deadline, and file URI are not null or empty
+            if (description.isEmpty() || selectedDeadline == null || selectedFileUri == null) {
+                Toast.makeText(this, "Please fill in all fields and select a file.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            sendNewRequest(description, selectedDeadline, selectedFileUri.toString());
             bottomSheetDialog.dismiss();
         });
 
@@ -136,15 +159,17 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     private void showDatePickerDialog() {
-        // Get the current date
         final Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
 
-        // Create a DatePickerDialog
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, selectedYear, selectedMonth, selectedDay) -> {
-            selectedDeadline = selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear;
+            // Format the date correctly
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Calendar selectedDate = Calendar.getInstance();
+            selectedDate.set(selectedYear, selectedMonth, selectedDay);
+            selectedDeadline = sdf.format(selectedDate.getTime());
             deadlineTextView.setText("Selected Deadline: " + selectedDeadline); // Update the TextView with selected date
         }, year, month, day);
 
@@ -180,29 +205,128 @@ public class AdminActivity extends AppCompatActivity {
             String[] projection = {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
             try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    fileName = cursor.getString(cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME));
+                    fileName = cursor.getString(cursor.getColumnIndexOrThrow(                    DocumentsContract.Document.COLUMN_DISPLAY_NAME));
                 }
             }
         }
         return fileName;
     }
 
-    private void sendRequestToFaculty(String description) {
-        Map<String, Object> request = new HashMap<>();
-        request.put("description", description);
-        request.put("deadline", selectedDeadline);
-        request.put("fileUri", selectedFileUri != null ? selectedFileUri.toString() : ""); // Ensure the URI is not null
-        request.put("status", "pending");
+    private void sendNewRequest(String description, String deadline, String documentUrl) {
+        Map<String, Object> requestData = new HashMap<>();
+        requestData.put("description", description);
+        requestData.put("deadline", deadline);
+        requestData.put("fileUri", documentUrl);
+        requestData.put("status", "pending");
 
-        firestore.collection("requests")
-                .add(request)
+        firestore.collection("requests").add(requestData)
                 .addOnSuccessListener(documentReference -> {
-                    // Notify admin of success
-                    Log.d("AdminActivity", "Request sent successfully!");
+                    // Request successfully sent
+                    Toast.makeText(this, "Request sent successfully", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
-                    // Notify admin of failure
+                    Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show();
                     Log.e("AdminActivity", "Error sending request: ", e);
                 });
+    }
+
+    private void listenForNotifications() {
+        firestore.collection("admin_notifications")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null || snapshots == null) {
+                        Log.e("AdminActivity", "Error fetching notifications: ", e);
+                        return; // Handle errors
+                    }
+
+                    // Clear previous notifications
+                    // This is no longer needed since we are handling notifications in the dialog
+
+                    for (QueryDocumentSnapshot document : snapshots) {
+                        String requestId = document.getString("requestId");
+                        String status = document.getString("status");
+                        String facultyName = document.getString("facultyName");
+                        String facultyIcon = document.getString("facultyIcon");
+
+                        // Display the notification to the admin
+                        displayNotification(facultyName, status, facultyIcon);
+                    }
+                });
+    }
+
+    private void displayNotification(String facultyName, String status, String facultyIcon) {
+        // This method is no longer needed since we are handling notifications in the dialog
+        // You can remove this method if you are not using it elsewhere
+    }
+
+    private void showNotificationsDialog() {
+        BottomSheetDialog notificationsDialog = new BottomSheetDialog(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_notifications, null);
+        notificationsDialog.setContentView(dialogView);
+
+        LinearLayout notificationContainer = dialogView.findViewById(R.id.notification_container);
+        TextView noNotificationsTextView = dialogView.findViewById(R.id.no_notifications_text);
+
+        // Clear previous notifications
+        notificationContainer.removeAllViews();
+
+        // Fetch notifications from Firestore and display them
+        firestore.collection("admin_notifications")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        int notificationCount = 0; // Counter for notifications
+                        if (task.getResult().isEmpty()) {
+                            // Show the "No notifications available" message
+                            noNotificationsTextView.setVisibility(View.VISIBLE);
+                        } else {
+                            noNotificationsTextView.setVisibility(View.GONE); // Hide the no notifications text
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String facultyName = document.getString("facultyName");
+                                String status = document.getString("status");
+                                String facultyIcon = document.getString("facultyIcon");
+
+                                // Create a notification view
+                                View notificationView = getLayoutInflater().inflate(R.layout.notification_item, null);
+                                CircleImageView facultyIconView = notificationView.findViewById(R.id.faculty_icon);
+                                TextView notificationMessageView = notificationView.findViewById(R.id.notification_message);
+                                TextView notificationTimeView = notificationView.findViewById(R.id.notification_time);
+
+                                // Set the notification message
+                                notificationMessageView.setText(facultyName + " has " + status + " the request.");
+
+                                // Load the faculty icon using Glide
+                                Glide.with(this)
+                                        .load(facultyIcon)
+                                        .error(R.drawable.ic_launcher_background) // Optional: Default icon if loading fails
+                                        .into(facultyIconView);
+
+                                // Set the current time as the notification time
+                                String currentTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
+                                notificationTimeView.setText(currentTime);
+
+                                // Add the notification view to the notification container
+                                notificationContainer.addView(notificationView);
+                                notificationCount++; // Increment the notification count
+                            }
+                        }
+
+                        // Update the notification count on the bell icon
+                        updateNotificationCount(notificationCount);
+                    } else {
+                        Log.e("AdminActivity", "Error fetching notifications: ", task.getException());
+                    }
+                });
+
+        notificationsDialog.show();
+    }
+
+    private void updateNotificationCount(int count) {
+        TextView notificationCountTextView = findViewById(R.id.notification_count);
+        if (count > 0) {
+            notificationCountTextView.setText(String.valueOf(count));
+            notificationCountTextView.setVisibility(View.VISIBLE); // Show the count
+        } else {
+            notificationCountTextView.setVisibility(View.GONE); // Hide if no notifications
+        }
     }
 }

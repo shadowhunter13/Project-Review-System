@@ -11,15 +11,28 @@
     tools:context=".Faculty">
 
     <!-- Notification Icon -->
-    <ImageView
-        android:id="@+id/bell"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:src="@drawable/bell"
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_gravity="end"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp" />
+        android:layout_marginEnd="30dp">
 
+        <ImageView
+            android:id="@+id/bell"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/bell" />
+
+        <TextView
+            android:id="@+id/notification_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_red_dark"
+            android:visibility="gone"
+            android:layout_marginStart="4dp" /> <!-- Optional margin for spacing -->
+    </LinearLayout>
     <!-- Dashboard Section -->
     <LinearLayout
         android:id="@+id/Dashboard_Researcher"
@@ -58,6 +71,7 @@
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
+                android:textAlignment="center"
                 android:background="@drawable/block_background"
                 android:backgroundTint="#D3D3D3"
                 android:layout_marginTop="10dp" />
@@ -92,6 +106,7 @@
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
+                android:textAlignment="center"
                 android:background="@drawable/block_background"
                 android:backgroundTint="#D3D3D3"
                 android:layout_marginTop="10dp" />
@@ -126,6 +141,7 @@
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
+                android:textAlignment="center"
                 android:background="@drawable/block_background"
                 android:backgroundTint="#D3D3D3"
                 android:layout_marginTop="10dp" />
@@ -160,277 +176,48 @@
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
+                android:textAlignment="center"
                 android:background="@drawable/block_background"
                 android:backgroundTint="#D3D3D3"
                 android:layout_marginTop="10dp" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Persons List -->
-    <ScrollView
+    <LinearLayout
+        android:id="@+id/pdf_files_section"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="300dp"
+        android:orientation="vertical"
         android:layout_margin="10dp"
         android:background="@drawable/block_background">
 
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:text="Reviewed PDF Files"
+            android:textAlignment="center"
+            android:textSize="18sp"
+            android:textColor="@color/colorOnBackground" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/block_background">
+        <LinearLayout
+            android:id="@+id/pdf_file_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_background"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/done"
-                    android:layout_marginStart="10dp"
-                    android:background="@drawable/circle_background"
-                    android:scaleType="centerCrop" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="John Doe"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Designer"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_marginStart="-75dp"
-                    android:layout_marginTop="20dp" />
-
-                <Button
-                    android:id="@+id/fb1"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="65dp"
-                    android:layout_marginTop="20dp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/done"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/circle_background"
-                    android:scaleType="centerCrop" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="John Doe"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginStart="10dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Designer"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_marginStart="-75dp"
-                    android:layout_marginTop="40dp" />
-
-                <Button
-                    android:id="@+id/fb2"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="65dp"
-                    android:layout_marginTop="30dp" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/done"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/circle_background"
-                    android:scaleType="centerCrop" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="John Doe"
-                    android:layout_marginTop="20dp"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Designer"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_marginStart="-75dp"
-                    android:layout_marginTop="40dp" />
-
-                <Button
-                    android:id="@+id/fb3"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="65dp"
-                    android:layout_marginTop="30dp" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/done"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/circle_background"
-                    android:scaleType="centerCrop" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="John Doe"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginStart="10dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Designer"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_marginStart="-85dp"
-                    android:layout_marginTop="40dp" />
-
-                <Button
-                    android:id="@+id/fb4"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="75dp"
-                    android:layout_marginTop="30dp" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/done"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/circle_background"
-                    android:scaleType="centerCrop" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="John Doe"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginStart="10dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Designer"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_marginStart="-75dp"
-                    android:layout_marginTop="40dp" />
-
-                <Button
-                    android:id="@+id/fb5"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="65dp"
-                    android:layout_marginTop="30dp" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/done"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginTop="20dp"
-                    android:background="@drawable/circle_background"
-                    android:scaleType="centerCrop" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="John Doe"
-                    android:textColor="@color/black"
-                    android:textSize="20sp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginStart="10dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Designer"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:layout_marginStart="-75dp"
-                    android:layout_marginTop="40dp" />
-
-                <Button
-                    android:id="@+id/fb6"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="65dp"
-                    android:layout_marginTop="30dp" />
-            </LinearLayout>
-
-
-
-
-
-        </LinearLayout>
-    </ScrollView>
+    <Button
+        android:id="@+id/done_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Done"
+        android:textColor="@android:color/white"
+    android:textSize="16sp" />
+</LinearLayout>
 </LinearLayout>

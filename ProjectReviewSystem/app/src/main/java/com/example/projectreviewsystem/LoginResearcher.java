@@ -42,9 +42,9 @@ public class LoginResearcher extends AppCompatActivity {
         firestore = FirebaseFirestore.getInstance();
         configureGoogleSignIn();
 
-        if (firebaseAuth.getCurrentUser() != null) {
-            redirectToMainScreen();
-        }
+//        if (firebaseAuth.getCurrentUser() != null) {
+//            redirectToMainScreen();
+//        }
 
         emailEditText = findViewById(R.id.emailid);
         passwordEditText = findViewById(R.id.password);

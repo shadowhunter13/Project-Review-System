@@ -45,6 +45,5 @@
         android:layout_height="50dp"
         android:text="Send"
         android:textColor="@color/colorPrimaryDark"
-        android:layout_marginStart="auto"
         android:layout_marginTop="10dp" />
 </LinearLayout>
