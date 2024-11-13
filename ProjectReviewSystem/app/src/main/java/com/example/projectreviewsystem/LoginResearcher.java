@@ -1,6 +1,7 @@
 package com.example.projectreviewsystem;
 
-import android.annotation.SuppressLint;
+import static android.provider.Settings.System.getString;
+
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,7 +19,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,17 +45,13 @@ public class LoginResearcher extends AppCompatActivity {
         firestore = FirebaseFirestore.getInstance();
         configureGoogleSignIn();
 
-//        if (firebaseAuth.getCurrentUser() != null) {
-//            redirectToMainScreen();
-//        }
-
         emailEditText = findViewById(R.id.emailid);
         passwordEditText = findViewById(R.id.password);
         registerButton = findViewById(R.id.login_button);
         googleSignIn = findViewById(R.id.google);
         forgotPassword = findViewById(R.id.forgotpassword);
 
-        registerButton.setOnClickListener(v -> registerUser());
+        registerButton.setOnClickListener(v -> registerUser ());
         googleSignIn.setOnClickListener(v -> startGoogleSignIn());
         forgotPassword.setOnClickListener(v -> openEmailApp());
 
@@ -68,7 +67,7 @@ public class LoginResearcher extends AppCompatActivity {
         googleSignInClient = GoogleSignIn.getClient(this, gso);
     }
 
-    private void registerUser() {
+    private void registerUser () {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
@@ -84,22 +83,20 @@ public class LoginResearcher extends AppCompatActivity {
 
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        if (firebaseAuth.getCurrentUser() != null) {
-                            saveUserDataToFirestore(firebaseAuth.getCurrentUser().getUid(), email, null);
-                        }
-                        showSnackbar("Registration Successful", true);
-                        redirectToMainScreen();
-                    } else {
-                        Log.e("Registration", "Registration Failed: " + (task.getException() != null ? task.getException().getMessage() : "Unknown error"));
-                        showSnackbar("Registration Failed: " + (task.getException() != null ? task.getException().getMessage() : ""), false);
-                    }
-                });
+            if (task.isSuccessful() && firebaseAuth.getCurrentUser () != null) {
+                saveUserDataToFirestore(firebaseAuth.getCurrentUser ().getUid(), email, null);
+            } else {
+                showSnackbar("Registration Failed: " + (task.getException() != null ? task.getException().getMessage() : ""), false);
+            }
+        });
     }
 
     private void startGoogleSignIn() {
-        Intent signInIntent = googleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        // Sign out the user to clear cached credentials
+        googleSignInClient.signOut().addOnCompleteListener(task -> {
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+        });
     }
 
     @Override
@@ -124,16 +121,25 @@ public class LoginResearcher extends AppCompatActivity {
     private void firebaseAuthWithGoogle(GoogleSignInAccount account) {
         firebaseAuth.signInWithCredential(GoogleAuthProvider.getCredential(account.getIdToken(), null))
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String email = account.getEmail();
-                        Uri photoUri = account.getPhotoUrl();
-                        saveUserDataToFirestore(firebaseAuth.getCurrentUser().getUid(), email, photoUri);
-                        showSnackbar("Google Sign-In Successful", true);
-                        redirectToMainScreen();
+                    if (task.isSuccessful() && firebaseAuth.getCurrentUser () != null) {
+                        checkIfUserExists(firebaseAuth.getCurrentUser ().getUid(), account.getEmail(), account.getPhotoUrl());
                     } else {
                         showSnackbar("Google Sign-In Failed: " + (task.getException() != null ? task.getException().getMessage() : ""), false);
                     }
                 });
+    }
+
+    private void checkIfUserExists(String userId, String email, Uri photoUri) {
+        DocumentReference docRef = firestore.collection("faculty").document(userId);
+        docRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                // User exists, redirect to Faculty
+                redirectToActivity(Faculty.class);
+            } else {
+                saveUserDataToFirestore(userId, email, photoUri);
+                redirectToActivity(Designation.class);
+            }
+        }).addOnFailureListener(e -> Log.e("Firestore", "Failed to check user existence: " + e.getMessage()));
     }
 
     private void saveUserDataToFirestore(String userId, String email, Uri photoUri) {
@@ -141,18 +147,18 @@ public class LoginResearcher extends AppCompatActivity {
 
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", email);
-        userData.put("name", firebaseAuth.getCurrentUser().getDisplayName());
+        userData.put("name", firebaseAuth.getCurrentUser ().getDisplayName());
         if (photoUri != null) {
             userData.put("profile_photo", photoUri.toString());
         }
 
         docRef.set(userData)
-                .addOnSuccessListener(aVoid -> Log.i("Firestore", "User data saved successfully"))
+                .addOnSuccessListener(aVoid -> Log.i("Firestore", "User  data saved successfully"))
                 .addOnFailureListener(e -> Log.e("Firestore", "Failed to save user data", e));
     }
 
-    private void redirectToMainScreen() {
-        Intent intent = new Intent(LoginResearcher.this, Faculty.class);
+    private void redirectToActivity(Class<?> activityClass) {
+        Intent intent = new Intent(LoginResearcher.this, activityClass);
         startActivity(intent);
         finish();
     }

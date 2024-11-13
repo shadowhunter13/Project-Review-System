@@ -42,6 +42,7 @@ dependencies {
     implementation libs.firebase.database
     implementation libs.glide
     implementation libs.circleimageview
+    implementation libs.play.services.auth.v2020
     annotationProcessor libs.compiler
     implementation libs.glide // Check for the latest version
     annotationProcessor libs.compiler

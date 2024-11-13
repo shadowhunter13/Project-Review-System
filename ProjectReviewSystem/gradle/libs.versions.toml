@@ -19,6 +19,7 @@ googleGmsGoogleServices = "4.4.2"
 firebaseAuth = "23.0.0"
 materialVersion = "1.9.0"
 playServicesAuth = "21.2.0"
+playServicesAuthVersion = "20.2.0"
 swiperefreshlayout = "1.1.0"
 
 [libraries]
@@ -43,6 +44,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 material-v190 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+play-services-auth-v2020 = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuthVersion" }
 swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]

@@ -26,6 +26,7 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -76,10 +77,11 @@ public class AdminActivity extends AppCompatActivity {
                         int facultyCount = 1; // Counter for faculty layouts
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String facultyName = document.getString("name");
-                            String facultyImageUrl = document.getString("profile_photo"); // Use profilePhoto field
+                            String facultyImageUrl = document.getString("profile_photo"); // Use profile_photo field
+                            String userId = document.getId(); // Get the user ID
 
-                            // Populate the existing faculty layout based on the count
-                            populateFacultyLayout(facultyCount, facultyName, facultyImageUrl);
+                            // Fetch designation and department from the "designation" collection
+                            fetchDesignationData(userId, facultyCount, facultyName, facultyImageUrl);
                             facultyCount++;
                         }
                     } else {
@@ -88,21 +90,37 @@ public class AdminActivity extends AppCompatActivity {
                 });
     }
 
-    private void populateFacultyLayout(int facultyIndex, String name, String imageUrl) {
-        // Get the layout ID dynamically based on the index
+    private void fetchDesignationData(String userId, int facultyCount, String facultyName, String facultyImageUrl) {
+        firestore.collection("designation").document(userId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot designationDocument = task.getResult(); // Use DocumentSnapshot
+                        String facultyDesignation = designationDocument.getString("designation"); // Fetch designation
+                        String facultyDepartment = designationDocument.getString("department"); // Fetch department
+
+                        // Populate the existing faculty layout based on the count
+                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, facultyDesignation, facultyDepartment);
+                    } else {
+                        // If the designation document does not exist, populate with null values
+                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, null, null);
+                        Log.e("AdminActivity", "Error fetching designation data: ", task.getException());
+                    }
+                });
+    }
+
+    private void populateFacultyLayout(int facultyIndex, String name, String imageUrl, String designation, String department) {
         int layoutId = getResources().getIdentifier("faculty_" + facultyIndex, "id", getPackageName());
         LinearLayout facultyLayout = findViewById(layoutId);
 
         if (facultyLayout != null) {
-            // Set the faculty name
             TextView facultyNameTextView = facultyLayout.findViewById(getResources().getIdentifier("textView" + facultyIndex, "id", getPackageName()));
-            facultyNameTextView.setText(name); // Set the name
+            facultyNameTextView.setText(name);
 
-            // Load the faculty image using Glide
             CircleImageView facultyImageView = facultyLayout.findViewById(getResources().getIdentifier("imageView" + facultyIndex, "id", getPackageName()));
             Glide.with(this)
                     .load(imageUrl)
-                    .error(R.drawable.logo) // Optional: Error image if loading fails
+                    .error(R.drawable.logo)
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
@@ -116,7 +134,19 @@ public class AdminActivity extends AppCompatActivity {
                             return false; // Return false if you want Glide to handle the resource
                         }
                     })
-                    .into(facultyImageView); // Load the image into the ImageView
+                    .into(facultyImageView);
+
+            // Set designation and department or default values
+            TextView facultyDesignationTextView = facultyLayout.findViewById(getResources().getIdentifier("designation" + facultyIndex, "id", getPackageName()));
+            TextView facultyDepartmentTextView = facultyLayout.findViewById(getResources().getIdentifier("department" + facultyIndex, "id", getPackageName()));
+
+            if (designation != null && department != null) {
+                facultyDesignationTextView.setText(designation); // Set the designation
+                facultyDepartmentTextView.setText(department); // Set the department
+            } else {
+                facultyDesignationTextView.setText("N/A"); // Set to "N/A" if not available
+                facultyDepartmentTextView.setText("N/A"); // Set to "N/A" if not available
+            }
 
             // Set up the button click listener
             Button sendButton = facultyLayout.findViewById(getResources().getIdentifier("s" + facultyIndex, "id", getPackageName()));
@@ -205,7 +235,7 @@ public class AdminActivity extends AppCompatActivity {
             String[] projection = {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
             try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
                 if (cursor != null && cursor.moveToFirst()) {
-                    fileName = cursor.getString(cursor.getColumnIndexOrThrow(                    DocumentsContract.Document.COLUMN_DISPLAY_NAME));
+                    fileName = cursor.getString(cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME));
                 }
             }
         }

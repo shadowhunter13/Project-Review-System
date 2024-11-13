@@ -190,229 +190,372 @@
                     android:id="@+id/faculty_1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginTop="20dp"
-                    android:background="@drawable/block_background">
+                    android:background="@drawable/block_background"
+                    android:orientation="horizontal">
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/imageView1"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@drawable/done"
-                        android:layout_marginStart="10dp"
-                        android:background="@drawable/circle_background"
-                        android:scaleType="centerCrop" />
-
-                    <TextView
-                        android:id="@+id/textView1"
+                    <LinearLayout
                         android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="John Doe"
-                    android:textColor="@color/colorOnBackground"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1" />
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Designer"
-                    android:textColor="@color/colorOnBackground"
-                    android:textSize="18sp"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1" />
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/imageView1"
+                            android:layout_width="90dp"
+                            android:layout_height="90dp"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/circle_background"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/done" />
 
+                        <TextView
+                            android:id="@+id/textView1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="John Doe"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/designation1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="-122dp"
+                            android:layout_marginTop="25dp"
+                            android:text="Designer"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/department1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="-122dp"
+                            android:layout_marginTop="50dp"
+                            android:text="Department"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+                    </LinearLayout>
                     <Button
                         android:id="@+id/s1"
                         android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:textColor="@color/colorPrimaryDark"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="end" />
+                        android:layout_height="50dp"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="20dp"
+                        android:text="Send"
+                        android:textColor="@color/colorPrimaryDark" />
+
+
                 </LinearLayout>
+            <LinearLayout
+                android:id="@+id/faculty_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal">
 
                 <LinearLayout
-                    android:id="@+id/faculty_2"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="20dp">
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/imageView2"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@drawable/done"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
                         android:layout_marginStart="10dp"
                         android:background="@drawable/circle_background"
-                        android:scaleType="centerCrop" />
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/done" />
 
                     <TextView
                         android:id="@+id/textView2"
-                        android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Jane Smith"
-                    android:textColor="@color/colorOnBackground"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1" />
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="Jane Smith"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16sp" />
 
-                    <Button
-                        android:id="@+id/s2"
-                        android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:backgroundTint="@color/textColorPrimary"
-                    android:text="Send"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="end" />
+                    <TextView
+                        android:id="@+id/designation2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-122dp"
+                        android:layout_marginTop="28dp"
+                        android:text="Designer"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/department2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-122dp"
+                        android:layout_marginTop="55dp"
+                        android:text="Department"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16dp"/>
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/s2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="20dp"
+                    android:text="Send"
+                    android:textColor="@color/colorPrimaryDark" />
+            </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/faculty_3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="20dp">
+                    android:layout_marginTop="20dp"
+                    android:orientation="horizontal">
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/imageView3"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@drawable/done"
-                        android:layout_marginStart="10dp"
-                        android:background="@drawable/circle_background"
-                        android:scaleType="centerCrop" />
-
-
-                    <TextView
-                        android:id="@+id/textView3"
+                    <LinearLayout
                         android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Alice Johnson"
-                    android:textColor="@color/colorOnBackground"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1" />
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/imageView3"
+                            android:layout_width="90dp"
+                            android:layout_height="90dp"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/circle_background"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/done" />
+
+                        <TextView
+                            android:id="@+id/textView3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Alice Johnson"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/designation3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="-122dp"
+                            android:layout_marginTop="25dp"
+                            android:text="Designer"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/department3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="-122dp"
+                            android:layout_marginTop="50dp"
+                            android:text="Department"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+                    </LinearLayout>
 
                     <Button
                         android:id="@+id/s3"
                         android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="end" />
+                        android:layout_height="50dp"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="20dp"
+                        android:text="Send"
+                        android:textColor="@color/colorPrimaryDark" />
                 </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/faculty_4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal">
+
                 <LinearLayout
-                    android:id="@+id/faculty_4"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="20dp">
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/imageView4"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@drawable/done"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
                         android:layout_marginStart="10dp"
                         android:background="@drawable/circle_background"
-                        android:scaleType="centerCrop" />
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/done" />
 
                     <TextView
                         android:id="@+id/textView4"
-                        android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Analyst"
-                    android:textColor="@color/colorOnBackground"
-                    android:textSize="18sp"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1" />
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="Ana"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16sp" />
 
-                    <Button
-                        android:id="@+id/s4"
-                        android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="end" />
+                    <TextView
+                        android:id="@+id/designation4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-122dp"
+                        android:layout_marginTop="25dp"
+                        android:text="Analyst"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/department4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-122dp"
+                        android:layout_marginTop="50dp"
+                        android:text="Department"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16sp" />
                 </LinearLayout>
+                <Button
+                    android:id="@+id/s4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="20dp"
+                    android:text="Send"
+                    android:textColor="@color/colorPrimaryDark" />
+            </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/faculty_5"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="20dp">
+                    android:layout_marginTop="20dp"
+                    android:orientation="horizontal">
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/imageView5"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@drawable/done"
-                        android:layout_marginStart="10dp"
-                        android:background="@drawable/circle_background"
-                        android:scaleType="centerCrop" />
-
-                    <TextView
-                        android:id="@+id/textView5"
+                    <LinearLayout
                         android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Charlie Davis"
-                    android:textColor="@color/colorOnBackground"
-                    android:textSize="20sp"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1" />
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/imageView5"
+                            android:layout_width="90dp"
+                            android:layout_height="90dp"
+                            android:layout_marginStart="10dp"
+                            android:background="@drawable/circle_background"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/done" />
+
+                        <TextView
+                            android:id="@+id/textView5"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Charlie Davis"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/designation5"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="-122dp"
+                            android:layout_marginTop="30dp"
+                            android:text="Designer"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/department5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="-122dp"
+                            android:layout_marginTop="60dp"
+                            android:text="Department"
+                            android:textColor="@color/colorOnBackground"
+                            android:textSize="16sp" />
+                    </LinearLayout>
 
                     <Button
                         android:id="@+id/s5"
                         android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="end" />
+                        android:layout_height="50dp"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="20dp"
+                        android:text="Send"
+                        android:textColor="@color/colorPrimaryDark" />
                 </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/faculty_6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal">
+
                 <LinearLayout
-                    android:id="@+id/faculty_6"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="20dp">
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/imageView6"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@drawable/done"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
                         android:layout_marginStart="10dp"
                         android:background="@drawable/circle_background"
-                        android:scaleType="centerCrop" />
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/done" />
 
                     <TextView
                         android:id="@+id/textView6"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
                         android:text="Emily White"
                         android:textColor="@color/colorOnBackground"
-                        android:textSize="20sp"
-                        android:layout_marginStart="10dp"
-                        android:layout_weight="1" />
-                    <Button
-                        android:id="@+id/s6"
-                        android:layout_width="wrap_content"
-                    android:layout_height="50dp"
-                    android:text="Send"
-                    android:backgroundTint="@color/colorWarning"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="end" />
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/designation6"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-122dp"
+                        android:layout_marginTop="30dp"
+                        android:text="Designer"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/department6"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-122dp"
+                        android:layout_marginTop="60dp"
+                        android:text="Department"
+                        android:textColor="@color/colorOnBackground"
+                        android:textSize="16sp" />
                 </LinearLayout>
 
-
+                <Button
+                    android:id="@+id/s6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="20dp"
+                    android:text="Send"
+                    android:textColor="@color/colorPrimaryDark" />
+            </LinearLayout>
             </LinearLayout>
 
         </ScrollView>
