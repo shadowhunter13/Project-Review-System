@@ -158,7 +158,7 @@ public class LoginResearcher extends AppCompatActivity {
     }
 
     private void redirectToActivity(Class<?> activityClass) {
-        Intent intent = new Intent(LoginResearcher.this, activityClass);
+        Intent intent = new Intent(LoginResearcher.this, Faculty.class);
         startActivity(intent);
         finish();
     }
