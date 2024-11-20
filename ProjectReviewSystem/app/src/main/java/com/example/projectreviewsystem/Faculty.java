@@ -1,15 +1,18 @@
 package com.example.projectreviewsystem;
 
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,11 +22,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class Faculty extends AppCompatActivity {
@@ -40,27 +45,30 @@ public class Faculty extends AppCompatActivity {
     private EditText totalDoneEditText;
     private EditText totalInReviewEditText;
     private Button doneButton;
-
+    private LinearLayout pdfContainer;
+    private int pdfCount = 1;
     private int totalProjectsCount = 0;
     private int doneCount = 0;
     private int pendingCount = 0;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_faculty);
-
-        firestore = FirebaseFirestore.getInstance();
+        ScrollView scrollView = findViewById(R.id.pdf_scroll_view);
+        pdfContainer = findViewById(R.id.pdf_file_list);
         notificationIcon = findViewById(R.id.bell);
         notificationCountTextView = findViewById(R.id.notification_count);
-        doneButton = findViewById(R.id.done_button);
-
         totalPendingEditText = findViewById(R.id.Total_pending);
         totalProjectsEditText = findViewById(R.id.Total_alloted);
         totalDoneEditText = findViewById(R.id.Total_done);
+        doneButton=findViewById(R.id.send_button_1);
         totalInReviewEditText = findViewById(R.id.Total_edit);
+        firestore = FirebaseFirestore.getInstance(); // Ensure this is called before using firestore
 
-        loadPdfFiles();
+//        loadPdfFilesiles();
+        loadAcceptedRequests();
         updateDashboardCounts();
         listenForCurrentRequest();
 
@@ -85,17 +93,34 @@ public class Faculty extends AppCompatActivity {
             }
         });
     }
+    private void loadAcceptedRequests() {
+        firestore.collection("requests")
+                .whereEqualTo("status", "accepted")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null || snapshots == null) return;
 
+                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                        if (dc.getType() == DocumentChange.Type.ADDED) {
+                            String docId = dc.getDocument().getId();
+                            String fileName = dc.getDocument().getString("fileName");
+                            String deadline = dc.getDocument().getString("deadline");
+
+                            // Add the accepted PDF entry to the layout
+                            addAcceptedPdfEntry(fileName, deadline);
+                        }
+                    }
+                });
+    }
     private void loadPdfFiles() {
-        LinearLayout pdfFileList = findViewById(R.id.pdf_file_list);
-        for (int i = 1; i <= 5; i++) {
-            TextView pdfTextView = new TextView(this);
-            pdfTextView.setText("Reviewed PDF File " + i);
-            pdfTextView.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-            pdfFileList.addView(pdfTextView);
-        }
+//        LinearLayout pdfFileList = findViewById(R.id.pdf_file_list);
+//        for (int i = 1; i <= 5; i++) {
+//            TextView pdfTextView = new TextView(this);
+//            pdfTextView.setText("Reviewed PDF File " + i);
+//            pdfTextView.setLayoutParams(new LinearLayout.LayoutParams(
+//                    LinearLayout.LayoutParams.MATCH_PARENT,
+//                    LinearLayout.LayoutParams.WRAP_CONTENT));
+//            pdfFileList.addView(pdfTextView);
+//        }
     }
 
     private void listenForCurrentRequest() {
@@ -148,11 +173,12 @@ public class Faculty extends AppCompatActivity {
         deadlineTextView.setText(deadline);
 
         openDocumentButton.setOnClickListener(v -> openDocument(documentUrl));
-        acceptButton.setOnClickListener(v -> updateRequestStatus(docId, "accepted"));
-        rejectButton.setOnClickListener(v -> updateRequestStatus(docId, "rejected"));
+        acceptButton.setOnClickListener(v -> updateRequestStatus(docId, "accepted", deadline));
+        rejectButton.setOnClickListener(v -> updateRequestStatus(docId, "rejected", null));
 
         requestDialog.show();
     }
+
 
     private void openDocument(String documentUrl) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -166,27 +192,152 @@ public class Faculty extends AppCompatActivity {
         }
     }
 
-    private void updateRequestStatus(String docId, String status) {
+    private void updateRequestStatus(String docId, String status, @Nullable String deadline) {
         firestore.collection("requests").document(docId)
-                .update("status", status)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
-                    if (requestDialog != null && requestDialog.isShowing()) {
-                        requestDialog.dismiss();
-                    }
+                .get() // Fetch the document to get the file name
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String fileName = documentSnapshot.getString("fileName"); // Get the file name
+                        firestore.collection("requests").document(docId)
+                                .update("status", status)
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
+                                    if (requestDialog != null && requestDialog.isShowing()) {
+                                        requestDialog.dismiss();
+                                    }
 
-                    if (status.equals("accepted")) {
-                        doneCount++;
-                        pendingCount--;
-                    } else if (status.equals("rejected")) {
-                        pendingCount--;
-                    }
+                                    if (status.equals("accepted")) {
+                                        // Update counts
+                                        doneCount++;
+                                        pendingCount--;
+                                        // Add the accepted PDF entry with the file name and deadline
+                                        addAcceptedPdfEntry(fileName, deadline); // Pass the file name instead of docId
+                                    } else if (status.equals("rejected")) {
+                                        pendingCount--;
+                                    }
 
-                    updateDashboardCounts();
-                    updateNotificationCount(lastNotificationCount);
-                    notifyAdminOfResponse(docId, status);
+                                    updateDashboardCounts();
+                                    updateNotificationCount(lastNotificationCount);
+                                    notifyAdminOfResponse(docId, status);
+                                })
+                                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to update request", Toast.LENGTH_SHORT).show());
+                    }
                 })
-                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to update request", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to retrieve document", Toast.LENGTH_SHORT).show());
+    }
+
+    private void addAcceptedPdfEntry(String pdfName, String deadline) {
+        // Create a new LinearLayout for the PDF entry
+        LinearLayout pdfEntry = new LinearLayout(this);
+        pdfEntry.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        pdfEntry.setOrientation(LinearLayout.HORIZONTAL);
+        pdfEntry.setPadding(16, 16, 16, 16);
+
+        // Create the vertical LinearLayout for the name, timer, and deadline date
+        LinearLayout pdfInfo = new LinearLayout(this);
+        pdfInfo.setLayoutParams(new LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1)); // Weight of 1 to take up available space
+        pdfInfo.setOrientation(LinearLayout.VERTICAL);
+
+        // Create TextView for PDF name
+        TextView pdfNameTextView = new TextView(this);
+        pdfNameTextView.setText(pdfName);
+        pdfNameTextView.setTextColor(getResources().getColor(R.color.colorOnBackground));
+        pdfNameTextView.setTextSize(16);
+        pdfNameTextView.setVisibility(View.VISIBLE);
+
+        // Create TextView for timer
+        TextView timerTextView = new TextView(this);
+        timerTextView.setText("00:00:00"); // Initial timer text
+        timerTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        timerTextView.setTextSize(14);
+
+        // Create TextView for deadline date
+        TextView deadlineTextView = new TextView(this);
+        deadlineTextView.setText(formatDeadline(deadline)); // Format the deadline date
+        deadlineTextView.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
+        deadlineTextView.setTextSize(14);
+
+        // Add the name, timer, and deadline to the vertical layout
+        pdfInfo.addView(pdfNameTextView);
+        pdfInfo.addView(timerTextView); // Add timer above the deadline
+        pdfInfo.addView(deadlineTextView); // Add the deadline TextView below the timer
+
+        // Create the Send button
+        Button sendButton = new Button(this);
+        sendButton.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        sendButton.setText("Send");
+        sendButton.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+
+        // Set an onClickListener for the send button
+        sendButton.setOnClickListener(v -> {
+            // Implement the send functionality here
+            Toast.makeText(Faculty.this, "Send functionality not implemented yet.", Toast.LENGTH_SHORT).show();
+        });
+
+        // Add the vertical layout and button to the horizontal layout
+        pdfEntry.addView(pdfInfo); // Add the name, timer, and deadline layout
+        pdfEntry.addView(sendButton); // Add the send button
+
+        // Add the new PDF entry to the container
+        pdfContainer.addView(pdfEntry);
+
+        // Start the countdown timer based on the deadline
+        startCountdownTimer(deadline, timerTextView);
+    }
+    private String formatDeadline(String deadline) {
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()); // Change to your desired format
+            return outputFormat.format(inputFormat.parse(deadline)); // Return formatted date
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return "Invalid deadline";
+        }
+    }
+    private void startCountdownTimer(String deadline, TextView timerTextView) {
+        if (deadline == null) {
+            timerTextView.setText("Invalid deadline");
+            return;
+        }
+
+        try {
+            long endTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(deadline).getTime();
+            long currentTime = System.currentTimeMillis();
+            long timeLeft = endTime - currentTime;
+
+            if (timeLeft > 0) {
+                CountDownTimer countDownTimer = new CountDownTimer(timeLeft, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        int days = (int) (millisUntilFinished / (1000 * 60 * 60 * 24));
+                        int hours = (int) (millisUntilFinished % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
+                        int minutes = (int) ((millisUntilFinished % (1000 * 60 * 60)) / (1000 * 60));
+                        int seconds = (int) (millisUntilFinished % (1000 * 60) / 1000);
+
+                        // Update the timerTextView to show days, hours, minutes, and seconds
+                        timerTextView.setText(String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds));
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        timerTextView.setText("00:00:00"); // Reset timer when finished
+                        // Optionally remove the PDF entry or update its status
+                    }
+                }.start();
+            } else {
+                timerTextView.setText("Deadline has passed");
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            timerTextView.setText("Invalid deadline");
+        }
     }
 
     private void updateDashboardCounts() {
@@ -240,3 +391,4 @@ public class Faculty extends AppCompatActivity {
         }
     }
 }
+

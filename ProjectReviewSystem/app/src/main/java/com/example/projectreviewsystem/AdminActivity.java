@@ -30,6 +30,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -232,21 +233,42 @@ public class AdminActivity extends AppCompatActivity {
     private String getFileName(Uri uri) {
         String fileName = null;
         if (uri != null) {
-            String[] projection = {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
-            try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
-                if (cursor != null && cursor.moveToFirst()) {
-                    fileName = cursor.getString(cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME));
+            if (uri.getScheme().equals("content")) {
+                // If the URI is a content URI, use the DocumentsContract to get the file name
+                String[] projection = { DocumentsContract.Document.COLUMN_DISPLAY_NAME };
+                try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        fileName = cursor.getString(cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME));
+                    }
                 }
+            } else if (uri.getScheme().equals("file")) {
+                // If the URI is a file URI, get the file name from the path
+                fileName = uri.getPath().substring(uri.getPath().lastIndexOf('/') + 1);
             }
         }
         return fileName;
     }
 
     private void sendNewRequest(String description, String deadline, String documentUrl) {
+        // Convert the deadline to the required format
+        SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+        String formattedDeadline = "";
+
+        try {
+            Date date = inputFormat.parse(deadline);
+            formattedDeadline = outputFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Invalid deadline format", Toast.LENGTH_SHORT).show();
+            return; // Exit if the format is invalid
+        }
+
         Map<String, Object> requestData = new HashMap<>();
         requestData.put("description", description);
-        requestData.put("deadline", deadline);
+        requestData.put("deadline", formattedDeadline); // Use the formatted deadline
         requestData.put("fileUri", documentUrl);
+        requestData.put("fileName", getFileName(selectedFileUri));
         requestData.put("status", "pending");
 
         firestore.collection("requests").add(requestData)
@@ -259,7 +281,6 @@ public class AdminActivity extends AppCompatActivity {
                     Log.e("AdminActivity", "Error sending request: ", e);
                 });
     }
-
     private void listenForNotifications() {
         firestore.collection("admin_notifications")
                 .addSnapshotListener((snapshots, e) -> {
