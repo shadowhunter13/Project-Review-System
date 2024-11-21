@@ -62,20 +62,24 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:src="@drawable/review" />
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="In Review"
+                android:text="In Progress"
                 android:textColor="@color/white"
-                android:textSize="13sp" />
-
+                android:textSize="11sp" />
             <EditText
-                android:id="@+id/Total_edit"
+                android:id="@+id/in_progress_count"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:background="@drawable/block_background"
-                android:backgroundTint="#D3D3D3" />
+                android:backgroundTint="#D3D3D3"
+                android:inputType="none"
+                android:textAlignment="center"
+                android:focusable="false"
+                android:text="0"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- Total Projects Section -->
@@ -95,16 +99,22 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Total Projects"
+                android:text="Pending "
                 android:textColor="@color/white"
                 android:textSize="13sp" />
 
             <EditText
-                android:id="@+id/Total_alloted"
+                android:id="@+id/Pending_Reviews"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:background="@drawable/block_background"
-                android:backgroundTint="#D3D3D3" />
+                android:backgroundTint="#D3D3D3"
+                android:inputType="none"
+                android:textAlignment="center"
+                android:focusable="false"
+                android:text="0"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <!-- Pending Section -->
@@ -124,16 +134,22 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pending"
+                android:text="Completed reviews"
                 android:textColor="@color/white"
-                android:textSize="13sp" />
+                android:textSize="11sp" />
 
             <EditText
-                android:id="@+id/Total_pending"
+                android:id="@+id/Completed_Reviews"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:background="@drawable/block_background"
-                android:backgroundTint="#D3D3D3" />
+                android:backgroundTint="#D3D3D3"
+                android:inputType="none"
+                android:textAlignment="center"
+                android:focusable="false"
+                android:text="0"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="13sp"  />
         </LinearLayout>
 
         <!-- Done Section -->
@@ -148,21 +164,29 @@
                 android:id="@+id/Done"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:layout_marginBottom="3dp"
                 android:src="@drawable/done" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Done"
+                android:text="Rejected Reviews"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="13sp" />
+                android:textSize="11sp" />
 
             <EditText
-                android:id="@+id/Total_done"
+                android:id="@+id/Rejected_Reviews"
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:background="@drawable/block_background"
-                android:backgroundTint="#D3D3D3" />
+                android:backgroundTint="#D3D3D3"
+                android:inputType="none"
+                android:textAlignment="center"
+                android:focusable="false"
+                android:text="0"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="13sp"  />
         </LinearLayout>
     </LinearLayout>
 
@@ -242,6 +266,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="50dp"
                         android:layout_gravity="end"
+                        android:background="@drawable/button_background"
                         android:layout_marginEnd="20dp"
                         android:text="Send"
                         android:textColor="@color/colorPrimaryDark" />
@@ -306,6 +331,8 @@
                     android:layout_height="50dp"
                     android:layout_gravity="end"
                     android:layout_marginEnd="20dp"
+                    android:background="@drawable/button_background"
+
                     android:text="Send"
                     android:textColor="@color/colorPrimaryDark" />
             </LinearLayout>
@@ -369,7 +396,8 @@
                         android:layout_gravity="end"
                         android:layout_marginEnd="20dp"
                         android:text="Send"
-                        android:textColor="@color/colorPrimaryDark" />
+                        android:background="@drawable/button_background"
+                    android:textColor="@color/colorPrimaryDark" />
                 </LinearLayout>
 
             <LinearLayout
@@ -430,6 +458,7 @@
                     android:layout_gravity="end"
                     android:layout_marginEnd="20dp"
                     android:text="Send"
+                    android:background="@drawable/button_background"
                     android:textColor="@color/colorPrimaryDark" />
             </LinearLayout>
 
@@ -492,6 +521,7 @@
                         android:layout_gravity="end"
                         android:layout_marginEnd="20dp"
                         android:text="Send"
+                        android:background="@drawable/button_background"
                         android:textColor="@color/colorPrimaryDark" />
                 </LinearLayout>
 
@@ -553,6 +583,7 @@
                     android:layout_height="50dp"
                     android:layout_gravity="end"
                     android:layout_marginEnd="20dp"
+                    android:background="@drawable/button_background"
                     android:text="Send"
                     android:textColor="@color/colorPrimaryDark" />
             </LinearLayout>

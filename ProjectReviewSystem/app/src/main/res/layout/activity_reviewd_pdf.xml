@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:backgroundTint="@color/white"
+    android:background="@drawable/rounded_background"
+    android:padding="16dp">
+
+    <!-- PDF Name TextView -->
+    <TextView
+        android:id="@+id/pdf_name_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PDF Name"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Deadline TextView -->
+    <TextView
+        android:id="@+id/deadline_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Deadline: 01/01/2023"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Calendar View for Completion Date -->
+    <TextView
+        android:id="@+id/completion_date_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Completion Date"
+        android:textSize="16sp"
+        android:textColor="@android:color/holo_blue_dark"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/select_date_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Open Calendar"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- EditText for Comments -->
+    <EditText
+        android:id="@+id/comments_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Comments or changes required"
+        android:layout_marginBottom="16dp"/>
+
+
+    <Button
+        android:id="@+id/accepted_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_accepted"
+        android:textColor="@android:color/black"
+        android:drawablePadding="8dp"
+        android:text="Accepted"
+        android:layout_marginBottom="8dp"
+        android:contentDescription="Accepted Button"/>
+
+
+
+
+
+    <Button
+            android:id="@+id/rejected_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rejected"
+            android:background="@drawable/button_rejected"
+            android:textColor="@android:color/black"/>
+
+
+        <Button
+            android:id="@+id/question_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Changes Required"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/button_question"
+            android:textColor="@android:color/black"/>
+
+    <Button
+        android:id="@+id/send_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Send"
+        android:background="@drawable/button_background"
+        android:textColor="@android:color/black"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

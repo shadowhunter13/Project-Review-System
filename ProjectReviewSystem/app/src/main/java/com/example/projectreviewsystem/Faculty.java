@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.firestore.DocumentChange;
@@ -46,8 +47,6 @@ public class Faculty extends AppCompatActivity {
     private EditText totalInReviewEditText;
     private Button doneButton;
     private LinearLayout pdfContainer;
-    private int pdfCount = 1;
-    private int totalProjectsCount = 0;
     private int doneCount = 0;
     private int pendingCount = 0;
 
@@ -63,11 +62,10 @@ public class Faculty extends AppCompatActivity {
         totalPendingEditText = findViewById(R.id.Total_pending);
         totalProjectsEditText = findViewById(R.id.Total_alloted);
         totalDoneEditText = findViewById(R.id.Total_done);
-        doneButton=findViewById(R.id.send_button_1);
+        doneButton = findViewById(R.id.send_button_1);
         totalInReviewEditText = findViewById(R.id.Total_edit);
-        firestore = FirebaseFirestore.getInstance(); // Ensure this is called before using firestore
+        firestore = FirebaseFirestore.getInstance();
 
-//        loadPdfFilesiles();
         loadAcceptedRequests();
         updateDashboardCounts();
         listenForCurrentRequest();
@@ -83,16 +81,26 @@ public class Faculty extends AppCompatActivity {
         });
 
         doneButton.setOnClickListener(v -> {
-            if (pendingCount > 0) {
-                doneCount++;
-                pendingCount--;
-                updateDashboardCounts();
-                Toast.makeText(this, "Marked request as done.", Toast.LENGTH_SHORT).show();
+            if (!pendingRequests.isEmpty()) {
+                Request request = pendingRequests.get(0); // Get the first pending request
+                showReviewedPdfDialog(request.getDocId(), request.getDescription(), request.getDeadline());
+                pendingRequests.clear(); // Clear the pending requests after processing
             } else {
                 Toast.makeText(this, "No pending requests to mark as done.", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+    private void showReviewedPdfDialog(String docId, String description, String deadline) {
+        ReviewedPdfDialogFragment dialogFragment = new ReviewedPdfDialogFragment();
+        Bundle args = new Bundle();
+        args.putString("docId", docId);
+        args.putString("description", description);
+        args.putString("deadline", deadline);
+        dialogFragment.setArguments(args);
+        dialogFragment.show(getSupportFragmentManager(), "ReviewedPdfDialog");
+    }
+
     private void loadAcceptedRequests() {
         firestore.collection("requests")
                 .whereEqualTo("status", "accepted")
@@ -110,17 +118,6 @@ public class Faculty extends AppCompatActivity {
                         }
                     }
                 });
-    }
-    private void loadPdfFiles() {
-//        LinearLayout pdfFileList = findViewById(R.id.pdf_file_list);
-//        for (int i = 1; i <= 5; i++) {
-//            TextView pdfTextView = new TextView(this);
-//            pdfTextView.setText("Reviewed PDF File " + i);
-//            pdfTextView.setLayoutParams(new LinearLayout.LayoutParams(
-//                    LinearLayout.LayoutParams.MATCH_PARENT,
-//                    LinearLayout.LayoutParams.WRAP_CONTENT));
-//            pdfFileList.addView(pdfTextView);
-//        }
     }
 
     private void listenForCurrentRequest() {
@@ -178,7 +175,6 @@ public class Faculty extends AppCompatActivity {
 
         requestDialog.show();
     }
-
 
     private void openDocument(String documentUrl) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -277,8 +273,19 @@ public class Faculty extends AppCompatActivity {
 
         // Set an onClickListener for the send button
         sendButton.setOnClickListener(v -> {
-            // Implement the send functionality here
-            Toast.makeText(Faculty.this, "Send functionality not implemented yet.", Toast.LENGTH_SHORT).show();
+            // Create an instance of ReviewedPdfDialogFragment
+            ReviewedPdfDialogFragment dialogFragment = new ReviewedPdfDialogFragment();
+
+            // Create a bundle to pass the arguments
+            Bundle args = new Bundle();
+            args.putString("description", pdfName); // Pass the description (PDF name)
+            args.putString("deadline", deadline); // Pass the deadline
+
+            // Set the arguments to the dialog fragment
+            dialogFragment.setArguments(args);
+
+            // Show the dialog
+            dialogFragment.show(getSupportFragmentManager(), "ReviewedPdfDialog");
         });
 
         // Add the vertical layout and button to the horizontal layout
@@ -291,6 +298,7 @@ public class Faculty extends AppCompatActivity {
         // Start the countdown timer based on the deadline
         startCountdownTimer(deadline, timerTextView);
     }
+
     private String formatDeadline(String deadline) {
         try {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
@@ -301,6 +309,7 @@ public class Faculty extends AppCompatActivity {
             return "Invalid deadline";
         }
     }
+
     private void startCountdownTimer(String deadline, TextView timerTextView) {
         if (deadline == null) {
             timerTextView.setText("Invalid deadline");
@@ -342,7 +351,7 @@ public class Faculty extends AppCompatActivity {
 
     private void updateDashboardCounts() {
         totalPendingEditText.setText(String.valueOf(pendingCount));
-        totalProjectsEditText.setText(String.valueOf(totalProjectsCount));
+        totalProjectsEditText.setText(String.valueOf(pendingRequests.size())); // Assuming total projects are the size of pending requests
         totalDoneEditText.setText(String.valueOf(doneCount));
         totalInReviewEditText.setText(String.valueOf(pendingRequests.size()));
     }
@@ -391,4 +400,3 @@ public class Faculty extends AppCompatActivity {
         }
     }
 }
-

@@ -47,6 +47,10 @@ public class AdminActivity extends AppCompatActivity {
     private String selectedDeadline;
     private TextView fileNameTextView;  // TextView for file name
     private TextView deadlineTextView;
+    private EditText pendingReviewsCount;
+    private EditText inProgressCount;
+    private EditText completedReviewsCount;
+    private EditText rejectedReviewsCount;
     private FirebaseFirestore firestore;
 
     @SuppressLint("MissingInflatedId")
@@ -58,6 +62,14 @@ public class AdminActivity extends AppCompatActivity {
 
         bellIcon = findViewById(R.id.bell_icon);
         bellIcon.setOnClickListener(v -> showNotificationsDialog());
+        pendingReviewsCount = findViewById(R.id.Pending_Reviews);
+        inProgressCount = findViewById(R.id.in_progress_count);
+        completedReviewsCount = findViewById(R.id.Completed_Reviews);
+        rejectedReviewsCount = findViewById(R.id.Rejected_Reviews);
+
+        // Initialize counts
+        updateCounts(0, 0, 0, 0);
+
 
         // Initialize buttons and set click listeners
         for (int i = 1; i <= 6; i++) {
@@ -70,6 +82,17 @@ public class AdminActivity extends AppCompatActivity {
         listenForNotifications(); // Call to listen for notifications
     }
 
+    private void updateCounts(int pending, int inProgress, int completed, int rejected) {
+        pendingReviewsCount.setText(String.valueOf(pending));
+        inProgressCount.setText(String.valueOf(inProgress));
+        completedReviewsCount.setText(String.valueOf(completed));
+        rejectedReviewsCount.setText(String.valueOf(rejected));
+    }
+
+    // Method to simulate updating counts based on review process
+    public void updateReviewCounts(int newPending, int newInProgress, int newCompleted, int newRejected) {
+        updateCounts(newPending, newInProgress, newCompleted, newRejected);
+    }
     private void fetchFacultyData() {
         firestore.collection("faculty")
                 .get() // Fetch all documents in the "faculty" collection

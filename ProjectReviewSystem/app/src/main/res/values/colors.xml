@@ -1,5 +1,4 @@
 <resources>
-    <!-- Primary Colors -->
     <color name="colorPrimary">#007BFF</color> <!-- Bright Blue -->
     <color name="colorPrimaryDark">#0056b3</color> <!-- Dark Blue -->
     <color name="colorAccent">#FF4081</color> <!-- Pink Accent -->
@@ -10,6 +9,13 @@
     <color name="colorOnPrimary">#FFFFFF</color> <!-- Text on Primary -->
     <color name="black">#212121</color> <!-- Dark Text on Surface -->
     <color name="colorOnBackground">#212121</color> <!-- Dark Text on Background -->
+
+        <color name="holo_green_light">#A8D5BA</color>
+        <color name="holo_green_dark">#4CAF50</color>
+        <color name="holo_red_light">#FFCCCB</color>
+        <color name="holo_red_dark">#F44336</color>
+        <color name="holo_orange_light">#FFEB3B</color>
+        <color name="holo_orange_dark">#FFC107</color>
 
     <!-- Text Colors -->
     <color name="textColorPrimary">#212121</color> <!-- Primary Text Color -->

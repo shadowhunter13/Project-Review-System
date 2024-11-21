@@ -75,6 +75,7 @@
         android:backgroundTint="@color/white"
         android:text="Save"
         android:textSize="15dp"
+        android:background="@drawable/button_background"
         android:textAlignment="textStart"
         android:drawableEnd="@drawable/arrow"
         android:textColor="@color/black"

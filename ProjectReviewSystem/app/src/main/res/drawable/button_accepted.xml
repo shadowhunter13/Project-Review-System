@@ -1,0 +1,5 @@
+<!-- res/drawable/button_accepted_background.xml -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" android:drawable="@color/holo_green_dark" />
+    <item android:drawable="@drawable/block_background" />
+</selector>
