@@ -70,7 +70,6 @@ public class AdminActivity extends AppCompatActivity {
         // Initialize counts
         updateCounts(0, 0, 0, 0);
 
-
         // Initialize buttons and set click listeners
         for (int i = 1; i <= 6; i++) {
             int buttonId = getResources().getIdentifier("s" + i, "id", getPackageName());
@@ -78,21 +77,59 @@ public class AdminActivity extends AppCompatActivity {
             sendButton.setOnClickListener(v -> showBottomSheetDialog());
         }
 
-        fetchFacultyData(); // Call to fetch faculty data
-        listenForNotifications(); // Call to listen for notifications
+        fetchFacultyData();
+        listenForNotifications();
+        listenForRequestUpdates();
+    }
+
+    private void listenForRequestUpdates() {
+        firestore.collection("requests")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null || snapshots == null) {
+                        Log.e("AdminActivity", "Error fetching requests: ", e);
+                        return;
+                    }
+
+                    // Reset counts
+                    int pendingCount = 0;
+                    int inProgressCount = 0;
+                    int completedCount = 0;
+                    int rejectedCount = 0;
+
+                    for (QueryDocumentSnapshot document : snapshots) {
+                        String status = document.getString("status");
+                        switch (status) {
+                            case "pending":
+                                pendingCount++;
+                                break;
+                            case "in progress":
+                                inProgressCount++;
+                                break;
+                            case "completed":
+                                completedCount++;
+                                break;
+                            case "rejected":
+                                rejectedCount++;
+                                break;
+                        }
+                    }
+
+                    // Update the counts on the dashboard
+                    updateReviewCounts(pendingCount, inProgressCount, completedCount, rejectedCount);
+                });
     }
 
     private void updateCounts(int pending, int inProgress, int completed, int rejected) {
         pendingReviewsCount.setText(String.valueOf(pending));
         inProgressCount.setText(String.valueOf(inProgress));
         completedReviewsCount.setText(String.valueOf(completed));
-        rejectedReviewsCount.setText(String.valueOf(rejected));
-    }
+        rejectedReviewsCount.setText(String.valueOf(rejected));    }
 
     // Method to simulate updating counts based on review process
     public void updateReviewCounts(int newPending, int newInProgress, int newCompleted, int newRejected) {
         updateCounts(newPending, newInProgress, newCompleted, newRejected);
     }
+
     private void fetchFacultyData() {
         firestore.collection("faculty")
                 .get() // Fetch all documents in the "faculty" collection
@@ -298,17 +335,22 @@ public class AdminActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     // Request successfully sent
                     Toast.makeText(this, "Request sent successfully", Toast.LENGTH_SHORT).show();
+
+                    // Update counts
+                    updateReviewCounts(1, 1, 0, 0); // Increment Pending and In Progress counts
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show();
                     Log.e("AdminActivity", "Error sending request: ", e);
                 });
     }
+
     private void listenForNotifications() {
         firestore.collection("admin_notifications")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) {
-                        Log.e("AdminActivity", "Error fetching notifications: ", e);
+                        Log.e
+                                ("AdminActivity", "Error fetching notifications: ", e);
                         return; // Handle errors
                     }
 

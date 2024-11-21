@@ -61,6 +61,7 @@
                 android:id="@+id/Research"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:layout_marginBottom="3dp"
                 android:src="@drawable/review" />
             <TextView
                 android:layout_width="wrap_content"
@@ -94,6 +95,7 @@
                 android:id="@+id/Total"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:layout_marginBottom="3dp"
                 android:src="@drawable/total" />
 
             <TextView
@@ -129,6 +131,7 @@
                 android:id="@+id/Pending"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:layout_marginBottom="3dp"
                 android:src="@drawable/pending" />
 
             <TextView

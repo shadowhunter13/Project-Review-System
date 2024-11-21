@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class Faculty extends AppCompatActivity {
+public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragment.OnStatusSelectedListener {
 
     private FirebaseFirestore firestore;
     private ImageView notificationIcon;
@@ -98,6 +98,7 @@ public class Faculty extends AppCompatActivity {
         args.putString("description", description);
         args.putString("deadline", deadline);
         dialogFragment.setArguments(args);
+        dialogFragment.setOnStatusSelectedListener(this); // Set the listener
         dialogFragment.show(getSupportFragmentManager(), "ReviewedPdfDialog");
     }
 
@@ -126,7 +127,8 @@ public class Faculty extends AppCompatActivity {
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) return;
 
-                    pendingRequests.clear();
+                    // Clear the pending requests only if they are new
+                    List<Request> newPendingRequests = new ArrayList<>();
                     for (DocumentChange dc : snapshots.getDocumentChanges()) {
                         if (dc.getType() == DocumentChange.Type.ADDED) {
                             String docId = dc.getDocument().getId();
@@ -134,17 +136,20 @@ public class Faculty extends AppCompatActivity {
                             String deadline = dc.getDocument().getString("deadline");
                             String documentUrl = dc.getDocument().getString("fileUri");
 
-                            pendingRequests.add(new Request(docId, description, deadline, documentUrl));
-                            pendingCount++;
+                            newPendingRequests.add(new Request(docId, description, deadline, documentUrl));
                         }
                     }
 
-                    Log.d("Faculty", "Pending requests count: " + pendingRequests.size());
-                    lastNotificationCount = pendingRequests.size();
-                    updateNotificationCount(lastNotificationCount);
+                    // Only update if there are new requests
+                    if (!newPendingRequests.isEmpty()) {
+                        pendingRequests.clear();
+                        pendingRequests.addAll(newPendingRequests);
+                        pendingCount += newPendingRequests.size();
+                        lastNotificationCount = pendingRequests.size();
+                        updateNotificationCount(lastNotificationCount);
+                    }
                 });
     }
-
     private void updateNotificationCount(int count) {
         Log.d("Faculty", "Updating notification count: " + count);
         if (count > 0) {
@@ -177,53 +182,56 @@ public class Faculty extends AppCompatActivity {
     }
 
     private void openDocument(String documentUrl) {
+        Uri documentUri = Uri.parse(documentUrl);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.parse(documentUrl), "*/*");
+        intent.setDataAndType(documentUri, "application/pdf");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
             Toast.makeText(this, "No application available to open this document.", Toast.LENGTH_SHORT).show();
+        } catch (SecurityException e) {
+            Toast.makeText(this, "Permission denied to access this document.", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void updateRequestStatus(String docId, String status, @Nullable String deadline) {
         firestore.collection("requests").document(docId)
-                .get() // Fetch the document to get the file name
+                .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        String fileName = documentSnapshot.getString("fileName"); // Get the file name
-                        firestore.collection("requests").document(docId)
-                                .update("status", status)
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
-                                    if (requestDialog != null && requestDialog.isShowing()) {
-                                        requestDialog.dismiss();
-                                    }
+                        String currentStatus = documentSnapshot.getString("status");
+                        // Check if the status is already updated to avoid duplicate processing
+                        if (!currentStatus.equals(status)) {
+                            String fileName = documentSnapshot.getString("fileName");
+                            firestore.collection("requests").document(docId)
+                                    .update("status", status)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
+                                        if (requestDialog != null && requestDialog.isShowing()) {
+                                            requestDialog.dismiss();
+                                        }
 
-                                    if (status.equals("accepted")) {
-                                        // Update counts
-                                        doneCount++;
-                                        pendingCount--;
-                                        // Add the accepted PDF entry with the file name and deadline
-                                        addAcceptedPdfEntry(fileName, deadline); // Pass the file name instead of docId
-                                    } else if (status.equals("rejected")) {
-                                        pendingCount--;
-                                    }
+                                        if (status.equals("accepted")) {
+                                            doneCount++;
+                                            pendingCount--;
+                                            addAcceptedPdfEntry(fileName, deadline);
+                                        } else if (status.equals("rejected")) {
+                                            pendingCount--;
+                                        }
 
-                                    updateDashboardCounts();
-                                    updateNotificationCount(lastNotificationCount);
-                                    notifyAdminOfResponse(docId, status);
-                                })
-                                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to update request", Toast.LENGTH_SHORT).show());
+                                        updateDashboardCounts();
+                                        updateNotificationCount(lastNotificationCount);
+                                        notifyAdminOfResponse(docId, status);
+                                    })
+                                    .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to update request", Toast.LENGTH_SHORT).show());
+                        }
                     }
                 })
                 .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to retrieve document", Toast.LENGTH_SHORT).show());
     }
-
     private void addAcceptedPdfEntry(String pdfName, String deadline) {
-        // Create a new LinearLayout for the PDF entry
         LinearLayout pdfEntry = new LinearLayout(this);
         pdfEntry.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -231,39 +239,32 @@ public class Faculty extends AppCompatActivity {
         pdfEntry.setOrientation(LinearLayout.HORIZONTAL);
         pdfEntry.setPadding(16, 16, 16, 16);
 
-        // Create the vertical LinearLayout for the name, timer, and deadline date
         LinearLayout pdfInfo = new LinearLayout(this);
         pdfInfo.setLayoutParams(new LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                1)); // Weight of 1 to take up available space
+                1));
         pdfInfo.setOrientation(LinearLayout.VERTICAL);
-
-        // Create TextView for PDF name
         TextView pdfNameTextView = new TextView(this);
         pdfNameTextView.setText(pdfName);
         pdfNameTextView.setTextColor(getResources().getColor(R.color.colorOnBackground));
         pdfNameTextView.setTextSize(16);
         pdfNameTextView.setVisibility(View.VISIBLE);
 
-        // Create TextView for timer
         TextView timerTextView = new TextView(this);
-        timerTextView.setText("00:00:00"); // Initial timer text
+        timerTextView.setText("00:00:00");
         timerTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
         timerTextView.setTextSize(14);
 
-        // Create TextView for deadline date
         TextView deadlineTextView = new TextView(this);
-        deadlineTextView.setText(formatDeadline(deadline)); // Format the deadline date
+        deadlineTextView.setText(formatDeadline(deadline));
         deadlineTextView.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
         deadlineTextView.setTextSize(14);
 
-        // Add the name, timer, and deadline to the vertical layout
         pdfInfo.addView(pdfNameTextView);
-        pdfInfo.addView(timerTextView); // Add timer above the deadline
-        pdfInfo.addView(deadlineTextView); // Add the deadline TextView below the timer
+        pdfInfo.addView(timerTextView);
+        pdfInfo.addView(deadlineTextView);
 
-        // Create the Send button
         Button sendButton = new Button(this);
         sendButton.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -271,39 +272,27 @@ public class Faculty extends AppCompatActivity {
         sendButton.setText("Send");
         sendButton.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
 
-        // Set an onClickListener for the send button
         sendButton.setOnClickListener(v -> {
-            // Create an instance of ReviewedPdfDialogFragment
             ReviewedPdfDialogFragment dialogFragment = new ReviewedPdfDialogFragment();
-
-            // Create a bundle to pass the arguments
             Bundle args = new Bundle();
-            args.putString("description", pdfName); // Pass the description (PDF name)
-            args.putString("deadline", deadline); // Pass the deadline
-
-            // Set the arguments to the dialog fragment
+            args.putString("description", pdfName);
+            args.putString("deadline", deadline);
             dialogFragment.setArguments(args);
-
-            // Show the dialog
+            dialogFragment.setOnStatusSelectedListener(this);
             dialogFragment.show(getSupportFragmentManager(), "ReviewedPdfDialog");
         });
 
-        // Add the vertical layout and button to the horizontal layout
-        pdfEntry.addView(pdfInfo); // Add the name, timer, and deadline layout
-        pdfEntry.addView(sendButton); // Add the send button
-
-        // Add the new PDF entry to the container
+        pdfEntry.addView(pdfInfo);
+        pdfEntry.addView(sendButton);
         pdfContainer.addView(pdfEntry);
-
-        // Start the countdown timer based on the deadline
         startCountdownTimer(deadline, timerTextView);
     }
 
     private String formatDeadline(String deadline) {
         try {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()); // Change to your desired format
-            return outputFormat.format(inputFormat.parse(deadline)); // Return formatted date
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            return outputFormat.format(inputFormat.parse(deadline));
         } catch (ParseException e) {
             e.printStackTrace();
             return "Invalid deadline";
@@ -329,15 +318,12 @@ public class Faculty extends AppCompatActivity {
                         int hours = (int) (millisUntilFinished % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
                         int minutes = (int) ((millisUntilFinished % (1000 * 60 * 60)) / (1000 * 60));
                         int seconds = (int) (millisUntilFinished % (1000 * 60) / 1000);
-
-                        // Update the timerTextView to show days, hours, minutes, and seconds
                         timerTextView.setText(String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds));
                     }
 
                     @Override
                     public void onFinish() {
-                        timerTextView.setText("00:00:00"); // Reset timer when finished
-                        // Optionally remove the PDF entry or update its status
+                        timerTextView.setText("00:00:00");
                     }
                 }.start();
             } else {
@@ -351,7 +337,7 @@ public class Faculty extends AppCompatActivity {
 
     private void updateDashboardCounts() {
         totalPendingEditText.setText(String.valueOf(pendingCount));
-        totalProjectsEditText.setText(String.valueOf(pendingRequests.size())); // Assuming total projects are the size of pending requests
+        totalProjectsEditText.setText(String.valueOf(pendingRequests.size()));
         totalDoneEditText.setText(String.valueOf(doneCount));
         totalInReviewEditText.setText(String.valueOf(pendingRequests.size()));
     }
@@ -368,6 +354,29 @@ public class Faculty extends AppCompatActivity {
                     // Optionally handle success
                 })
                 .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to notify admin", Toast.LENGTH_SHORT).show());
+    }
+
+    @Override
+    public void onStatusSelected(String status, String comments) {
+        if (!pendingRequests.isEmpty()) {
+            Request request = pendingRequests.get(0);
+            String deadline = request.getDeadline(); // Get the deadline from the request
+
+            // Update the request status with the document ID, status, and deadline
+            updateRequestStatus(request.getDocId(), status, deadline);
+
+            // Update the counts based on the selected status
+            if (status.equals("accepted")) {
+                doneCount++;
+                pendingCount--;
+            } else if (status.equals("rejected")) {
+                pendingCount--;
+            }
+
+            // Update the dashboard counts and notification count
+            updateDashboardCounts();
+            updateNotificationCount(lastNotificationCount);
+        }
     }
 
     public class Request {
