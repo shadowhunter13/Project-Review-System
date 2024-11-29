@@ -1,7 +1,5 @@
 package com.example.projectreviewsystem;
 
-import static android.provider.Settings.System.getString;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,7 +17,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -92,7 +89,6 @@ public class LoginResearcher extends AppCompatActivity {
     }
 
     private void startGoogleSignIn() {
-        // Sign out the user to clear cached credentials
         googleSignInClient.signOut().addOnCompleteListener(task -> {
             Intent signInIntent = googleSignInClient.getSignInIntent();
             startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -136,6 +132,7 @@ public class LoginResearcher extends AppCompatActivity {
                 // User exists, redirect to Faculty
                 redirectToActivity(Faculty.class);
             } else {
+                // User does not exist, save user data and redirect to Designation
                 saveUserDataToFirestore(userId, email, photoUri);
                 redirectToActivity(Designation.class);
             }
@@ -153,12 +150,16 @@ public class LoginResearcher extends AppCompatActivity {
         }
 
         docRef.set(userData)
-                .addOnSuccessListener(aVoid -> Log.i("Firestore", "User  data saved successfully"))
+                .addOnSuccessListener(aVoid -> {
+                    Log.i("Firestore", "User  data saved successfully");
+                    // After saving user data, redirect to AdminActivity
+                    redirectToActivity(AdminActivity.class);
+                })
                 .addOnFailureListener(e -> Log.e("Firestore", "Failed to save user data", e));
     }
 
     private void redirectToActivity(Class<?> activityClass) {
-        Intent intent = new Intent(LoginResearcher.this, Faculty.class);
+        Intent intent = new Intent(LoginResearcher.this, activityClass);
         startActivity(intent);
         finish();
     }
