@@ -191,8 +191,11 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
     }
 
     private void listenForCurrentRequest() {
+        String facultyId = FirebaseAuth.getInstance().getCurrentUser ().getUid(); // Get the current faculty member's ID
+
         firestore.collection("requests")
                 .whereEqualTo("status", "pending")
+                .whereEqualTo("recipientId", facultyId) // Filter by recipient ID
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) return;
 
