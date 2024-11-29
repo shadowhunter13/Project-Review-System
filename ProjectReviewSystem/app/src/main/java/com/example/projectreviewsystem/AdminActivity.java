@@ -370,9 +370,6 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
         fileNameTextView = bottomSheetView.findViewById(R.id.text_view_file_name);
 
-        // Assuming you have a way to select a faculty member
-        String selectedFacultyId = "faculty_id"; // Replace with actual selected faculty ID
-
         uploadButton.setOnClickListener(v -> openFileSelector());
 
         selectDateButton.setOnClickListener(v -> showDatePickerDialog());
@@ -383,7 +380,8 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                 Toast.makeText(this, "Please fill in all fields and select a file.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            sendNewRequest(description, selectedDeadline, selectedFileUri.toString(), selectedFacultyId); bottomSheetDialog.dismiss();
+            sendNewRequest(description, selectedDeadline, selectedFileUri.toString());
+            bottomSheetDialog.dismiss();
         });
 
         bottomSheetDialog.show();
@@ -450,7 +448,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
     private boolean isRequestInProgress = false; // Flag to prevent multiple submissions
 
-    private void sendNewRequest(String description, String deadline, String documentUrl, String recipientId) {
+    private void sendNewRequest(String description, String deadline, String documentUrl) {
         if (isRequestInProgress) {
             Toast.makeText(this, "Request is already being processed. Please wait.", Toast.LENGTH_SHORT).show();
             return; // Prevent multiple submissions
@@ -481,7 +479,6 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
         requestData.put("fileName", getFileName(selectedFileUri));
         requestData.put("status", "pending");
         requestData.put("researcherId", researcherId); // Add researcher ID to the request data
-        requestData.put("recipientId", recipientId); // Add recipient ID to the request data
 
         firestore.collection("requests").add(requestData)
                 .addOnSuccessListener(documentReference -> {

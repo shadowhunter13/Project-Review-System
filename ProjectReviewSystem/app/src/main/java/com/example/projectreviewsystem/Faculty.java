@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -181,9 +182,10 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                             String docId = dc.getDocument().getId();
                             String fileName = dc.getDocument().getString("fileName");
                             String deadline = dc.getDocument().getString("deadline");
+                            String documentUrl = dc.getDocument().getString("fileUri"); // Ensure you get the document URL
 
                             if (!acceptedPdfEntries.containsKey(docId)) {
-                                addAcceptedPdfEntry(fileName, deadline, docId);
+                                addAcceptedPdfEntry(fileName, deadline, docId, documentUrl); // Pass documentUrl here
                             }
                         }
                     }
@@ -191,11 +193,8 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
     }
 
     private void listenForCurrentRequest() {
-        String facultyId = FirebaseAuth.getInstance().getCurrentUser ().getUid(); // Get the current faculty member's ID
-
         firestore.collection("requests")
                 .whereEqualTo("status", "pending")
-                .whereEqualTo("recipientId", facultyId) // Filter by recipient ID
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) return;
 
@@ -245,32 +244,49 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 
         TextView descriptionTextView = dialogView.findViewById(R.id.text_description);
         TextView deadlineTextView = dialogView.findViewById(R.id.text_deadline);
-        Button openDocumentButton = dialogView.findViewById(R.id.button_open_document);
         Button acceptButton = dialogView.findViewById(R.id.button_accept);
         Button rejectButton = dialogView.findViewById(R.id.button_reject);
 
         descriptionTextView.setText(description);
         deadlineTextView.setText(deadline);
 
-        openDocumentButton.setOnClickListener(v -> openDocument(documentUrl));
+        // Set the click listener for the description text view to open the document
+        descriptionTextView.setOnClickListener(v -> openDocument(documentUrl, true)); // Assuming the request is accepted
+
         acceptButton.setOnClickListener(v -> updateRequestStatus(docId, "accepted", deadline));
         rejectButton.setOnClickListener(v -> updateRequestStatus(docId, "rejected", null));
 
         requestDialog.show();
     }
 
-    private void openDocument(String documentUrl) {
+    private void openDocument(String documentUrl, boolean isAccepted) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser ();
+        if (user == null) {
+            // User is not authenticated, handle this case
+            Toast.makeText(this, "You need to be logged in to access this document.", Toast.LENGTH_SHORT).show();
+            // Optionally, redirect to login activity
+            Intent intent = new Intent(this, LoginResearcher.class);
+            startActivity(intent);
+            return; // Exit the method
+        }
+
         Uri documentUri = Uri.parse(documentUrl);
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(documentUri, "application/pdf");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(this, "No application available to open this document.", Toast.LENGTH_SHORT).show();
-        } catch (SecurityException e) {
-            Toast.makeText(this, "Permission denied to access this document.", Toast.LENGTH_SHORT).show();
+        if (isAccepted) {
+            // If the request is accepted, allow access to the document
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(this, "No application available to open this document.", Toast.LENGTH_SHORT).show();
+            } catch (SecurityException e) {
+                Toast.makeText(this, "Permission denied to access this document.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            // Handle the case where the request is not accepted
+            Toast.makeText(this, "You do not have permission to access this document.", Toast.LENGTH_SHORT).show();
         }
     }
     private void updateRequestStatus(String docId, String status, @Nullable String deadline) {
@@ -335,7 +351,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         }
     }
 
-    private void addAcceptedPdfEntry(String pdfName, String deadline, String docId) {
+    private void addAcceptedPdfEntry(String pdfName, String deadline, String docId, String documentUrl) {
         LinearLayout pdfEntry = new LinearLayout(this);
         pdfEntry.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -349,11 +365,19 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 1));
         pdfInfo.setOrientation(LinearLayout.VERTICAL);
+
         TextView pdfNameTextView = new TextView(this);
         pdfNameTextView.setText(pdfName);
         pdfNameTextView.setTextColor(getResources().getColor(R.color.colorOnBackground));
         pdfNameTextView.setTextSize(16);
         pdfNameTextView.setVisibility(View.VISIBLE);
+
+        // Set the click listener for the PDF name text view
+        pdfNameTextView.setOnClickListener(v -> {
+            // Check if the request is accepted before opening the document
+            boolean isAccepted = true; // You should set this based on your logic
+            openDocument(documentUrl, isAccepted);
+        });
 
         TextView timerTextView = new TextView(this);
         timerTextView.setText("00:00:00");

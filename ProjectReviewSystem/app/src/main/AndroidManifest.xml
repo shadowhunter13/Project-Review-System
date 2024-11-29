@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- Permissions required for internet access and network state -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -28,9 +27,7 @@
         <activity
             android:name=".LoginAdmin"
             android:exported="false" />
-        <activity
-            android:name=".Chatroom"
-            android:exported="false" />
+
         <activity
             android:name=".Faculty"
             android:exported="false" />

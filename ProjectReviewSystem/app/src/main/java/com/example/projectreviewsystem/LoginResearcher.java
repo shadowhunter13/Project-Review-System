@@ -142,9 +142,13 @@ public class LoginResearcher extends AppCompatActivity {
     private void saveUserDataToFirestore(String userId, String email, Uri photoUri) {
         DocumentReference docRef = firestore.collection("faculty").document(userId);
 
+        // Generate a unique ID (you can customize this as needed)
+        String uniqueId = userId + "_" + System.currentTimeMillis(); // Example: userId_timestamp
+
         Map<String, Object> userData = new HashMap<>();
         userData.put("email", email);
         userData.put("name", firebaseAuth.getCurrentUser ().getDisplayName());
+        userData.put("uniqueId", uniqueId); // Store the unique ID
         if (photoUri != null) {
             userData.put("profile_photo", photoUri.toString());
         }
