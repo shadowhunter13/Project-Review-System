@@ -59,6 +59,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
     private FirebaseFirestore firestore;
     private Set<String> processedNotificationIds = new HashSet<>();
 
+    
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
