@@ -263,6 +263,11 @@
                             android:text="Department"
                             android:textColor="@color/colorOnBackground"
                             android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/unique_id_text_view"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                     <Button
                         android:id="@+id/s1"
@@ -326,6 +331,11 @@
                         android:text="Department"
                         android:textColor="@color/colorOnBackground"
                         android:textSize="16dp"/>
+                    <TextView
+                        android:id="@+id/unique_id_text_view"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <Button
@@ -390,6 +400,11 @@
                             android:text="Department"
                             android:textColor="@color/colorOnBackground"
                             android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/unique_id_text_view"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
                     </LinearLayout>
 
                     <Button
@@ -453,6 +468,11 @@
                         android:text="Department"
                         android:textColor="@color/colorOnBackground"
                         android:textSize="16sp" />
+                    <TextView
+                        android:id="@+id/unique_id_text_view"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
                 </LinearLayout>
                 <Button
                     android:id="@+id/s4"
@@ -515,6 +535,11 @@
                             android:text="Department"
                             android:textColor="@color/colorOnBackground"
                             android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/unique_id_text_view"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:visibility="gone" />
                     </LinearLayout>
 
                     <Button
@@ -578,6 +603,11 @@
                         android:text="Department"
                         android:textColor="@color/colorOnBackground"
                         android:textSize="16sp" />
+                    <TextView
+                        android:id="@+id/unique_id_text_view"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <Button

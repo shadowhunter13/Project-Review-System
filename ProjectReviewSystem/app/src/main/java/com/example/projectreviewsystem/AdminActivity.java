@@ -144,8 +144,17 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
         for (int i = 1; i <= 6; i++) {
             int buttonId = getResources().getIdentifier("s" + i, "id", getPackageName());
             Button sendButton = findViewById(buttonId);
-            sendButton.setOnClickListener(v -> showBottomSheetDialog());
+
+            // Assuming you have a way to get the researcherId for each button
+            String researcherId = getResearcherIdForButton(i); // Implement this method to get the correct researcherId
+
+            sendButton.setOnClickListener(v -> showBottomSheetDialog(researcherId)); // Pass the researcherId
         }
+    }
+
+    private String getResearcherIdForButton(int index) {
+        
+        return "researcherId_" + index; // Example: return a dummy researcher ID
     }
 
     private void listenForDashboardCounts() {
@@ -284,7 +293,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String facultyName = document.getString("name");
                             String facultyImageUrl = document.getString("profile_photo");
-                            String userId = document.getId();
+                            String userId = document.getId(); // Get the unique ID of the faculty member
 
                             fetchDesignationData(userId, facultyCount, facultyName, facultyImageUrl);
                             facultyCount++;
@@ -304,15 +313,15 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                         String facultyDesignation = designationDocument.getString("designation");
                         String facultyDepartment = designationDocument.getString("department");
 
-                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, facultyDesignation, facultyDepartment);
+                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, facultyDesignation, facultyDepartment, userId);
                     } else {
-                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, null, null);
+                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, null, null, userId);
                         Log.e("AdminActivity", "Error fetching designation data: ", task.getException());
                     }
                 });
     }
 
-    private void populateFacultyLayout(int facultyIndex, String name, String imageUrl, String designation, String department) {
+    private void populateFacultyLayout(int facultyIndex, String name, String imageUrl, String designation, String department, String researcherId) {
         int layoutId = getResources().getIdentifier("faculty_" + facultyIndex, "id", getPackageName());
         LinearLayout facultyLayout = findViewById(layoutId);
 
@@ -351,13 +360,13 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
             }
 
             Button sendButton = facultyLayout.findViewById(getResources().getIdentifier("s" + facultyIndex, "id", getPackageName()));
-            sendButton.setOnClickListener(v -> showBottomSheetDialog());
+            sendButton.setOnClickListener(v -> showBottomSheetDialog(researcherId)); // Pass the researcherId
         } else {
             Log.e("AdminActivity", "Faculty layout not found for index: " + facultyIndex);
         }
     }
 
-    private void showBottomSheetDialog() {
+    private void showBottomSheetDialog(String researcherId) { // Accept researcherId as a parameter
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_dialog, null);
         bottomSheetDialog.setContentView(bottomSheetView);
@@ -380,7 +389,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                 Toast.makeText(this, "Please fill in all fields and select a file.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            sendNewRequest(description, selectedDeadline, selectedFileUri.toString());
+            sendNewRequest(description, selectedDeadline, selectedFileUri.toString(), researcherId); // Pass researcherId
             bottomSheetDialog.dismiss();
         });
 
@@ -448,7 +457,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
     private boolean isRequestInProgress = false; // Flag to prevent multiple submissions
 
-    private void sendNewRequest(String description, String deadline, String documentUrl) {
+    private void sendNewRequest(String description, String deadline, String documentUrl, String researcherId) { // Add researcherId parameter
         if (isRequestInProgress) {
             Toast.makeText(this, "Request is already being processed. Please wait.", Toast.LENGTH_SHORT).show();
             return; // Prevent multiple submissions
@@ -470,13 +479,11 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
             return;
         }
 
-        String researcherId = FirebaseAuth.getInstance().getCurrentUser ().getUid(); // Get the current user's ID
-
         Map<String, Object> requestData = new HashMap<>();
         requestData.put("description", description);
         requestData.put("deadline", formattedDeadline);
         requestData.put("fileUri", documentUrl);
-        requestData.put("fileName", getFileName(selectedFileUri));
+                requestData.put("fileName", getFileName(selectedFileUri));
         requestData.put("status", "pending");
         requestData.put("researcherId", researcherId); // Add researcher ID to the request data
 
