@@ -26,6 +26,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.ParseException;
@@ -251,96 +252,107 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         descriptionTextView.setText(description);
         deadlineTextView.setText(deadline);
 
-        descriptionTextView.setOnClickListener(v -> openDocumentPicker());
+//        descriptionTextView.setOnClickListener(v -> acceptRequest(docId));
         acceptButton.setOnClickListener(v -> updateRequestStatus(docId, "accepted", deadline));
         rejectButton.setOnClickListener(v -> updateRequestStatus(docId, "rejected", null));
 
         requestDialog.show();
     }
-    private void acceptRequest(String requestId) {
+    private void acceptRequest(String documentUrl) {
         // Retrieve the document URL from Firestore
-        db.collection("requests").document(requestId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Assuming the URL is stored in a field called "fileUrl"
-                        String documentUrl = documentSnapshot.getString("fileUrl");
-                        if (documentUrl != null && !documentUrl.isEmpty()) {
-                            // Open the document picker to select the document
-                            openDocumentPicker();
-                        } else {
-                            Toast.makeText(this, "No document URL found.", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(this, "Request not found.", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Firestore", "Error getting document: ", e);
-                    Toast.makeText(this, "Error retrieving document URL.", Toast.LENGTH_SHORT).show();
-                });
+//        db.collection("requests").document(requestId)
+//                .get()
+//                .addOnSuccessListener(documentSnapshot -> {
+//                    if (documentSnapshot.exists()) {
+//                        // Assuming the URL is stored in a field called "fileUrl"
+//                        String documentUrl = documentSnapshot.getString("fileUrl");
+//                        if (documentUrl != null && !documentUrl.isEmpty()) {
+//                            // Convert the string URL to a Uri
+//                            // Convert the string URL to a Uri
+//                            Uri documentUri = Uri.parse(documentUrl);
+//                            openDocumentWithUri(documentUri); // Directly open the document
+//                        } else {
+//                            Toast.makeText(this, "No document URL found.", Toast.LENGTH_SHORT).show();
+//                        }
+//                    } else {
+//                        Toast.makeText(this, "Request not found.", Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .addOnFailureListener(e -> {
+//                    Log.e("Firestore", "Error getting document: ", e);
+//                    Toast.makeText(this, "Error retrieving document URL.", Toast.LENGTH_SHORT).show();
+//                });
+        if (documentUrl != null && !documentUrl.isEmpty()) {
+            // Convert the string URL to a Uri
+            // Convert the string URL to a Uri
+            Uri documentUri = Uri.parse(documentUrl);
+            Toast.makeText(this, documentUrl.toString(), Toast.LENGTH_LONG).show();
+            Log.d("uri","uri: "+documentUrl.toString());
+            openDocumentWithUri(documentUri); // Directly open the document
+        } else {
+            Toast.makeText(this, "No document URL found.", Toast.LENGTH_SHORT).show();
+        }
     }
+//        private void openDocumentPicker() {
+//            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+//            intent.addCategory(Intent.CATEGORY_OPENABLE);
+//            intent.setType("*/*"); // You can specify a specific MIME type if needed
+//            startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT);
+//        }
 
-    private void openDocumentPicker() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*"); // You can specify a specific MIME type if needed
-        startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT);
-    }
+        // This method will be called when the user selects a document
+        @Override
+        protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == REQUEST_CODE_OPEN_DOCUMENT && resultCode == RESULT_OK) {
+                if (data != null) {
+                    Uri documentUri = data.getData(); // Get the URI of the selected document
+                    openDocumentWithUri(documentUri);
+                } else {
+                    Toast.makeText(this, "Invalid document URI.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
 
-    // This method will be called when the user selects a document
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_OPEN_DOCUMENT && resultCode == RESULT_OK) {
-            if (data != null) {
-                Uri documentUri = data.getData(); // Get the URI of the selected document
-                openDocumentWithUri(documentUri);
-            } else {
+        // Method to open the document with the given URI
+        private void openDocumentWithUri(Uri documentUri) {
+            if (documentUri == null) {
                 Toast.makeText(this, "Invalid document URI.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(documentUri, "application/pdf"); // Change MIME type based on the file type
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            // Create a chooser to let the user select an application to open the document
+            Intent chooser = Intent.createChooser(intent, "Open document with");
+
+            // Check if there is an application that can handle the intent
+            try {
+                startActivity(chooser);
+            } catch (ActivityNotFoundException e) {
+                Log.e("Faculty", "ActivityNotFoundException: " + e.getMessage());
+                Toast.makeText(this, "No application available to open this document.", Toast.LENGTH_SHORT).show();
+            } catch (SecurityException e) {
+                Log.e("Faculty", "SecurityException: " + e.getMessage());
+                Toast.makeText(this, "Permission denied to access this document.", Toast.LENGTH_SHORT).show();
             }
         }
-    }
 
-    // Method to open the document with the given URI
-    private void openDocumentWithUri(Uri documentUri) {
-        if (documentUri == null) {
-            Toast.makeText(this, "Invalid document URI.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(documentUri, "application/pdf"); // Change MIME type based on the file type
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-        // Create a chooser to let the user select an application to open the document
-        Intent chooser = Intent.createChooser(intent, "Open document with");
-
-        // Check if there is an application that can handle the intent
-        try {
-            startActivity(chooser);
-        } catch (ActivityNotFoundException e) {
-            Log.e("Faculty", "ActivityNotFoundException: " + e.getMessage());
-            Toast.makeText(this, "No application available to open this document.", Toast.LENGTH_SHORT).show();
-        } catch (SecurityException e) {
-            Log.e("Faculty", "SecurityException: " + e.getMessage());
-            Toast.makeText(this, "Permission denied to access this document.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-  @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 100) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, you can now open the document
-                // You may want to call openDocument again if needed
-                // For example, you can store the document URL in a variable and call openDocument(documentUrl, true);
-            } else {
-                Toast.makeText(this, "Permission denied to read external storage.", Toast.LENGTH_SHORT).show();
+      @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (requestCode == 100) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted, you can now open the document
+                    // You may want to call openDocument again if needed
+                    // For example, you can store the document URL in a variable and call openDocument(documentUrl, true);
+                } else {
+                    Toast.makeText(this, "Permission denied to read external storage.", Toast.LENGTH_SHORT).show();
+                }
             }
         }
-    }
     private void updateRequestStatus(String docId, String status, @Nullable String deadline) {
         Log.d("Faculty", "Attempting to update request status for Document ID: " + docId + " with deadline: " + deadline);
 
@@ -425,7 +437,8 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         pdfNameTextView.setVisibility(View.VISIBLE);
 
         pdfNameTextView.setOnClickListener(v -> {
-            openDocumentPicker();
+//            acceptRequest(documentUrl);
+            fetchAndOpenPdf(docId);
         });
 
         TextView timerTextView = new TextView(this);
@@ -464,6 +477,28 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         acceptedPdfEntries.put(docId, pdfEntry);
         startCountdownTimer(deadline, timerTextView);
     }
+
+    // added new for 439
+    private void fetchAndOpenPdf(String reqId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("requests").document(reqId).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            String url = document.getString("fileUri");
+                            Log.w("Url-aman", url);
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(this, "Document does not exist", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Failed to fetch PDF: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
 
 
     private String formatDeadline(String deadline) {
