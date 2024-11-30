@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -17,6 +18,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import java.util.Locale;
 import java.util.Map;
 
@@ -43,11 +46,12 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
     private List<Request> pendingRequests = new ArrayList<>();
     private int lastNotificationCount = 0;
     private int totalProjects = 0; // Declare totalProjects variable
-    // SharedPreferences keys
+    private static final int REQUEST_CODE_OPEN_DOCUMENT = 1;
     private static final String PREFS_NAME = "DashboardCounts";
     private static final String KEY_DONE_COUNT = "doneCount";
     private static final String KEY_PENDING_COUNT = "pendingCount";
     private static final String KEY_IN_REVIEW_COUNT = "inReviewCount";
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private EditText totalPendingEditText;
     private EditText totalProjectsEditText;
@@ -172,6 +176,12 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
     }
 
     private void loadAcceptedRequests() {
+        FirebaseUser  user = FirebaseAuth.getInstance().getCurrentUser ();
+        if (user == null) {
+            Toast.makeText(this, "You need to be logged in to access this feature.", Toast.LENGTH_SHORT).show();
+            return; // Exit if the user is not authenticated
+        }
+
         firestore.collection("requests")
                 .whereEqualTo("status", "accepted")
                 .addSnapshotListener((snapshots, e) -> {
@@ -182,10 +192,10 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                             String docId = dc.getDocument().getId();
                             String fileName = dc.getDocument().getString("fileName");
                             String deadline = dc.getDocument().getString("deadline");
-                            String documentUrl = dc.getDocument().getString("fileUri"); // Ensure you get the document URL
+                            String documentUrl = dc.getDocument().getString("fileUri");
 
                             if (!acceptedPdfEntries.containsKey(docId)) {
-                                addAcceptedPdfEntry(fileName, deadline, docId, documentUrl); // Pass documentUrl here
+                                addAcceptedPdfEntry(fileName, deadline, docId, documentUrl);
                             }
                         }
                     }
@@ -194,11 +204,10 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 
     private void listenForCurrentRequest() {
         firestore.collection("requests")
-                .whereEqualTo("status", "pending")
+                .whereEqualTo("status", "pending") // Assuming "pending" means it's a new request
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) return;
 
-                    List<Request> newPendingRequests = new ArrayList<>();
                     for (DocumentChange dc : snapshots.getDocumentChanges()) {
                         if (dc.getType() == DocumentChange.Type.ADDED) {
                             String docId = dc.getDocument().getId();
@@ -206,22 +215,14 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                             String deadline = dc.getDocument().getString("deadline");
                             String documentUrl = dc.getDocument().getString("fileUri");
 
-                            boolean alreadyExists = pendingRequests.stream()
-                                    .anyMatch(request -> request.getDocId().equals(docId));
-                            if (!alreadyExists) {
-                                // Create a new Request object and add it to the list
-                                Request newRequest = new Request(docId, description, deadline, documentUrl);
-                                newPendingRequests.add(newRequest);
-                                pendingRequests.add(newRequest); // Add to the pendingRequests list immediately
-                                pendingCount++; // Increment pending count immediately
-                                lastNotificationCount++; // Increment notification count
-                                updateNotificationCount(lastNotificationCount);
-                                totalPendingEditText.setText(String.valueOf(pendingCount));
-                                Log.d("Faculty", "New pending request added: " + docId);
-                                Log.d("Faculty", "Updated pending count: " + pendingCount);
-                            } else {
-                                Log.d("Faculty", "Request already exists: " + docId);
-                            }
+                            // Create a new Request object and add it to the list
+                            Request newRequest = new Request(docId, description, deadline, documentUrl);
+                            pendingRequests.add(newRequest); // Add to the pendingRequests list
+                            pendingCount++; // Increment pending count
+                            lastNotificationCount++; // Increment notification count
+                            updateNotificationCount(lastNotificationCount);
+                            totalPendingEditText.setText(String.valueOf(pendingCount));
+                            Log.d("Faculty", "New pending request added: " + docId);
                         }
                     }
                 });
@@ -250,43 +251,94 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         descriptionTextView.setText(description);
         deadlineTextView.setText(deadline);
 
-        // Set the click listener for the description text view to open the document
-        descriptionTextView.setOnClickListener(v -> openDocument(documentUrl, true)); // Assuming the request is accepted
-
+        descriptionTextView.setOnClickListener(v -> openDocumentPicker());
         acceptButton.setOnClickListener(v -> updateRequestStatus(docId, "accepted", deadline));
         rejectButton.setOnClickListener(v -> updateRequestStatus(docId, "rejected", null));
 
         requestDialog.show();
     }
+    private void acceptRequest(String requestId) {
+        // Retrieve the document URL from Firestore
+        db.collection("requests").document(requestId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Assuming the URL is stored in a field called "fileUrl"
+                        String documentUrl = documentSnapshot.getString("fileUrl");
+                        if (documentUrl != null && !documentUrl.isEmpty()) {
+                            // Open the document picker to select the document
+                            openDocumentPicker();
+                        } else {
+                            Toast.makeText(this, "No document URL found.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Request not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Error getting document: ", e);
+                    Toast.makeText(this, "Error retrieving document URL.", Toast.LENGTH_SHORT).show();
+                });
+    }
 
-    private void openDocument(String documentUrl, boolean isAccepted) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser ();
-        if (user == null) {
-            // User is not authenticated, handle this case
-            Toast.makeText(this, "You need to be logged in to access this document.", Toast.LENGTH_SHORT).show();
-            // Optionally, redirect to login activity
-            Intent intent = new Intent(this, LoginResearcher.class);
-            startActivity(intent);
-            return; // Exit the method
+    private void openDocumentPicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*"); // You can specify a specific MIME type if needed
+        startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT);
+    }
+
+    // This method will be called when the user selects a document
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_OPEN_DOCUMENT && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri documentUri = data.getData(); // Get the URI of the selected document
+                openDocumentWithUri(documentUri);
+            } else {
+                Toast.makeText(this, "Invalid document URI.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    // Method to open the document with the given URI
+    private void openDocumentWithUri(Uri documentUri) {
+        if (documentUri == null) {
+            Toast.makeText(this, "Invalid document URI.", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        Uri documentUri = Uri.parse(documentUrl);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(documentUri, "application/pdf");
+        intent.setDataAndType(documentUri, "application/pdf"); // Change MIME type based on the file type
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        if (isAccepted) {
-            // If the request is accepted, allow access to the document
-            try {
-                startActivity(intent);
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(this, "No application available to open this document.", Toast.LENGTH_SHORT).show();
-            } catch (SecurityException e) {
-                Toast.makeText(this, "Permission denied to access this document.", Toast.LENGTH_SHORT).show();
+        // Create a chooser to let the user select an application to open the document
+        Intent chooser = Intent.createChooser(intent, "Open document with");
+
+        // Check if there is an application that can handle the intent
+        try {
+            startActivity(chooser);
+        } catch (ActivityNotFoundException e) {
+            Log.e("Faculty", "ActivityNotFoundException: " + e.getMessage());
+            Toast.makeText(this, "No application available to open this document.", Toast.LENGTH_SHORT).show();
+        } catch (SecurityException e) {
+            Log.e("Faculty", "SecurityException: " + e.getMessage());
+            Toast.makeText(this, "Permission denied to access this document.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+  @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, you can now open the document
+                // You may want to call openDocument again if needed
+                // For example, you can store the document URL in a variable and call openDocument(documentUrl, true);
+            } else {
+                Toast.makeText(this, "Permission denied to read external storage.", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            // Handle the case where the request is not accepted
-            Toast.makeText(this, "You do not have permission to access this document.", Toast.LENGTH_SHORT).show();
         }
     }
     private void updateRequestStatus(String docId, String status, @Nullable String deadline) {
@@ -317,11 +369,11 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                                         }
 
                                         if (status.equals("accepted")) {
-                                            totalInReviewCount++; // Increment in review count
-                                            totalProjects++; // Increment total projects count
+                                            totalInReviewCount++;
+                                            totalProjects++;
                                         }
 
-                                        updateDashboardCounts(); // Update the dashboard counts
+                                        updateDashboardCounts();
 //                                        notifyAdminOfResponse(docId, status);
                                     })
                                     .addOnFailureListener(e -> {
@@ -372,11 +424,8 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         pdfNameTextView.setTextSize(16);
         pdfNameTextView.setVisibility(View.VISIBLE);
 
-        // Set the click listener for the PDF name text view
         pdfNameTextView.setOnClickListener(v -> {
-            // Check if the request is accepted before opening the document
-            boolean isAccepted = true; // You should set this based on your logic
-            openDocument(documentUrl, isAccepted);
+            openDocumentPicker();
         });
 
         TextView timerTextView = new TextView(this);
@@ -388,7 +437,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         if (deadline != null) {
             deadlineTextView.setText(formatDeadline(deadline));
         } else {
-            deadlineTextView.setText("No deadline set"); // Handle null case
+            deadlineTextView.setText("No deadline set");
         }
         deadlineTextView.setTextColor(getResources().getColor(android.R.color.holo_blue_dark));
         deadlineTextView.setTextSize(14);

@@ -153,7 +153,8 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
     }
 
     private String getResearcherIdForButton(int index) {
-        
+        // Implement logic to return the correct researcherId based on the button index
+        // This is just a placeholder; you need to replace it with your actual logic
         return "researcherId_" + index; // Example: return a dummy researcher ID
     }
 
