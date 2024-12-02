@@ -459,7 +459,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 
                                     updateDashboardCounts();
                                     // Optionally notify the admin of the response
-//                                    notifyAdminOfResponse(docId, status);
+                                    notifyAdminOfResponse(docId, status,userName);
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.e("Faculty", "Failed to update request status: " + e.getMessage());
@@ -516,14 +516,14 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
             fetchAndOpenPdf(docId);
         });
 
-        TextView timerTextView = new TextView(this);
-        timerTextView.setText("00:00:00");
-        timerTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-        timerTextView.setTextSize(14);
+//        TextView timerTextView = new TextView(this);
+//        timerTextView.setText("00:00:00");
+//        timerTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+//        timerTextView.setTextSize(14);
 
         TextView deadlineTextView = new TextView(this);
         if (deadline != null) {
-            deadlineTextView.setText(formatDeadline(deadline));
+            deadlineTextView.setText(deadline);
         } else {
             deadlineTextView.setText("No deadline set");
         }
@@ -531,7 +531,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         deadlineTextView.setTextSize(14);
 
         pdfInfo.addView(pdfNameTextView);
-        pdfInfo.addView(timerTextView);
+//        pdfInfo.addView(timerTextView);
         pdfInfo.addView(deadlineTextView);
 
         Button sendButton = new Button(this);
@@ -550,7 +550,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         pdfEntry.addView(sendButton);
         pdfContainer.addView(pdfEntry);
         acceptedPdfEntries.put(docId, pdfEntry);
-        startCountdownTimer(deadline, timerTextView);
+//        startCountdownTimer(deadline, timerTextView);
     }
 
     // added new for 439
@@ -591,66 +591,66 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         }
     }
 
-    private void startCountdownTimer(String deadline, TextView timerTextView) {
-        if (deadline == null) {
-            timerTextView.setText("Invalid deadline");
-            return;
-        }
-
-        try {
-            long endTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(deadline).getTime();
-            long currentTime = System.currentTimeMillis();
-            long timeLeft = endTime - currentTime;
-
-            if (timeLeft > 0) {
-                CountDownTimer countDownTimer = new CountDownTimer(timeLeft, 1000) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {
-                        int days = (int) (millisUntilFinished / (1000 * 60 * 60 * 24));
-                        int hours = (int) (millisUntilFinished % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
-                        int minutes = (int) ((millisUntilFinished % (1000 * 60 * 60)) / (1000 * 60));
-                        int seconds = (int) (millisUntilFinished % (1000 * 60) / 1000);
-                        timerTextView.setText(String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds));
-                    }
-
-                    @Override
-                    public void onFinish() {
-                        timerTextView.setText("00:00:00");
-                    }
-                }.start();
-            } else {
-                timerTextView.setText("Deadline has passed");
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-            timerTextView.setText("Invalid deadline");
-        }
-    }
-//    private void notifyAdminOfResponse(String docId, String status) {
-//        // Get the current user's ID
-//        String facultyId = FirebaseAuth.getInstance().getCurrentUser ().getUid(); // Fetch the current user's ID
+//    private void startCountdownTimer(String deadline, TextView timerTextView) {
+//        if (deadline == null) {
+//            timerTextView.setText("Invalid deadline");
+//            return;
+//        }
 //
-//        // Fetch faculty details from the "faculty" collection using the faculty ID
+//        try {
+//            long endTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(deadline).getTime();
+//            long currentTime = System.currentTimeMillis();
+//            long timeLeft = endTime - currentTime;
+//
+//            if (timeLeft > 0) {
+//                CountDownTimer countDownTimer = new CountDownTimer(timeLeft, 1000) {
+//                    @Override
+//                    public void onTick(long millisUntilFinished) {
+//                        int days = (int) (millisUntilFinished / (1000 * 60 * 60 * 24));
+//                        int hours = (int) (millisUntilFinished % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
+//                        int minutes = (int) ((millisUntilFinished % (1000 * 60 * 60)) / (1000 * 60));
+//                        int seconds = (int) (millisUntilFinished % (1000 * 60) / 1000);
+//                        timerTextView.setText(String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds));
+//                    }
+//
+//                    @Override
+//                    public void onFinish() {
+//                        timerTextView.setText("00:00:00");
+//                    }
+//                }.start();
+//            } else {
+//                timerTextView.setText("Deadline has passed");
+//            }
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//            timerTextView.setText("Invalid deadline");
+//        }
+//    }
+    private void notifyAdminOfResponse(String docId, String status, String facultyName) {
+        // Get the current user's ID
+        String facultyId = FirebaseAuth.getInstance().getCurrentUser ().getUid(); // Fetch the current user's ID
+
+        // Fetch faculty details from the "faculty" collection using the faculty ID
 //        firestore.collection("faculty").document(facultyId)
 //                .get()
 //                .addOnSuccessListener(documentSnapshot -> {
 //                    if (documentSnapshot.exists()) {
 //                        String facultyName = documentSnapshot.getString("name");
 //                        String facultyIcon = documentSnapshot.getString("iconUrl");
-//
-//                        // Prepare the notification data
-//                        Map<String, Object> responseNotification = new HashMap<>();
-//                        responseNotification.put("requestId", docId);
-//                        responseNotification.put("status", status);
-//                        responseNotification.put("facultyName", facultyName); // Use actual faculty name
+
+                        // Prepare the notification data
+                        Map<String, Object> responseNotification = new HashMap<>();
+                        responseNotification.put("requestId", docId);
+                        responseNotification.put("status", status);
+                        responseNotification.put("facultyName", facultyName); // Use actual faculty name
 //                        responseNotification.put("facultyIcon", facultyIcon); // Use actual faculty icon URL
-//
-//                        // Send notification to admin
-//                        firestore.collection("admin_notifications").add(responseNotification)
-//                                .addOnSuccessListener(aVoid -> {
-//                                    Log.d("Faculty", "Notification sent to admin for Document ID: " + docId + " with status: " + status);
-//                                })
-//                                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to notify admin", Toast.LENGTH_SHORT).show());
+
+                        // Send notification to admin
+                        firestore.collection("admin_notifications").add(responseNotification)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("Faculty", "Notification sent to admin for Document ID: " + docId + " with status: " + status);
+                                })
+                                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to notify admin", Toast.LENGTH_SHORT).show());
 //                    } else {
 //                        Log.e("Faculty", "Faculty document does not exist.");
 //                    }
@@ -658,7 +658,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 //                .addOnFailureListener(e -> {
 //                    Log.e("Faculty", "Failed to retrieve faculty details: " + e.getMessage());
 //                });
-//    }
+    }
 
 
 //    @Override

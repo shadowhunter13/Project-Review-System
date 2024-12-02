@@ -312,6 +312,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                                 String facultyEmail = facultySnapshot.child("email").getValue(String.class);
                                 String facultyDesignation = facultySnapshot.child("designation").getValue(String.class);
                                 String facultyDepartment = facultySnapshot.child("department").getValue(String.class);
+                                String imageUrl=facultySnapshot.child("profile_photo").getValue(String.class);
                                 Log.d("aman", "onDataChange: "+ facultyName+ facultyEmail);
                                 // Extract project details (example for "uhgb" project key)
 //                                DataSnapshot projectSnapshot = facultySnapshot.child("projects").child("uhgb");
@@ -320,7 +321,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 //                                String projectDeadline = projectSnapshot.child("deadline").getValue(String.class);
 
                                 // Call the method to display the faculty and project details
-                                fetchDesignationData(userId, facultyCount, facultyName, facultyEmail, facultyDesignation, facultyDepartment);
+                                fetchDesignationData(userId, facultyCount, facultyName, facultyEmail, facultyDesignation, facultyDepartment,imageUrl);
                                 facultyCount++;
                             }
                         } else {
@@ -335,11 +336,11 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                 });
     }
 
-    private void fetchDesignationData(String userId, int facultyCount, String facultyName, String facultyEmail, String facultyDesignation, String facultyDepartment) {
-        populateFacultyLayout(facultyCount, facultyName, facultyEmail, facultyDesignation, facultyDepartment, userId);
+    private void fetchDesignationData(String userId, int facultyCount, String facultyName, String facultyEmail, String facultyDesignation, String facultyDepartment,String imageUrl) {
+        populateFacultyLayout(facultyCount, facultyName, facultyEmail, facultyDesignation, facultyDepartment, userId,imageUrl);
     }
 
-    private void populateFacultyLayout(int facultyIndex, String name, String email, String designation, String department, String researcherId) {
+    private void populateFacultyLayout(int facultyIndex, String name, String email, String designation, String department, String researcherId,String imageUrl) {
         int layoutId = getResources().getIdentifier("faculty_" + facultyIndex, "id", getPackageName());
         LinearLayout facultyLayout = findViewById(layoutId);
 
@@ -355,25 +356,25 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
             facultyDesignationTextView.setText(designation != null ? designation : "N/A");
             facultyDepartmentTextView.setText(department != null ? department : "N/A");
 
-//            CircleImageView facultyImageView = facultyLayout.findViewById(getResources().getIdentifier("imageView" + facultyIndex, "id", getPackageName()));
-//            Glide.with(this)
-//                    .load(imageUrl)
-//                    .error(R.drawable.logo)
-//                    .listener(new RequestListener<Drawable>() {
-//                        @Override
-//                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-//                            Log.e("GlideError", "Image load failed for URL: " + imageUrl, e);
-//                            return false;
-//                        }
-//
-//                        @Override
-//                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-//                            Log.d("GlideSuccess", "Image loaded successfully for URL: " + imageUrl);
-//                            return false;
-//                        }
-//                    })
-//                    .into(facultyImageView);
-//
+            CircleImageView facultyImageView = facultyLayout.findViewById(getResources().getIdentifier("imageView" + facultyIndex, "id", getPackageName()));
+            Glide.with(this)
+                    .load(imageUrl)
+                    .error(R.drawable.logo)
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Log.e("GlideError", "Image load failed for URL: " + imageUrl, e);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            Log.d("GlideSuccess", "Image loaded successfully for URL: " + imageUrl);
+                            return false;
+                        }
+                    })
+                    .into(facultyImageView);
+
 
             // Handle button actions
             Button sendButton = facultyLayout.findViewById(getResources().getIdentifier("s" + facultyIndex, "id", getPackageName()));

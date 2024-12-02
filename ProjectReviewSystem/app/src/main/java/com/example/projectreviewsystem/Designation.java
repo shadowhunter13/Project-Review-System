@@ -42,6 +42,7 @@ public class Designation extends AppCompatActivity {
         String userName = getIntent().getStringExtra("USER_NAME");
         String email = getIntent().getStringExtra("EMAIL"); // Retrieve the email
         HashMap<String, Object> projects = (HashMap<String, Object>) getIntent().getSerializableExtra("PROJECTS");
+        String profilePhotoUrl = getIntent().getStringExtra("profile_photo");
 
         // Initialize UI elements
         designationEditText = findViewById(R.id.designation);
@@ -49,10 +50,10 @@ public class Designation extends AppCompatActivity {
         saveButton = findViewById(R.id.save_button);
 
         // Set click listener for the save button
-        saveButton.setOnClickListener(v -> saveDesignationAndDepartment(userId, userName, email, projects));
+        saveButton.setOnClickListener(v -> saveDesignationAndDepartment(userId, userName, email, projects,profilePhotoUrl));
     }
 
-    private void saveDesignationAndDepartment(String userId, String userName, String email, HashMap<String, Object> projects) {
+    private void saveDesignationAndDepartment(String userId, String userName, String email, HashMap<String, Object> projects,String profilePhotoUrl) {
         String designation = designationEditText.getText().toString().trim();
         String department = departmentEditText.getText().toString().trim();
 
@@ -68,6 +69,7 @@ public class Designation extends AppCompatActivity {
         designationData.put("department", department);
         designationData.put("email", email); // Store the email
         designationData.put("name", userName); // Store the user's name
+        designationData.put("profile_photo",profilePhotoUrl);
         designationData.put("projects", projects); // Store the projects
         String[] uniqueId = userName.split(" ");
 
