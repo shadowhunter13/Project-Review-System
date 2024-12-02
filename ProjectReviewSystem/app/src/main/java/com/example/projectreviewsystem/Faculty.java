@@ -88,15 +88,14 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         initializeViews();
         firestore = FirebaseFirestore.getInstance();
         String userName = getIntent().getStringExtra("USER_NAME");
-        // Load initial data
-        loadAcceptedRequests(userName);
         listenForCurrentRequest(userName);
+        loadAcceptedRequests(userName);
 //        loadCountsFromPreferences();
         updateDashboardCounts();
 
 
         // Set up notification icon click listener
-        notificationIcon.setOnClickListener(v -> handleNotificationIconClick());
+        notificationIcon.setOnClickListener(v -> handleNotificationIconClick(userName));
 
         // Set up done button click listener
         doneButton.setOnClickListener(v -> handleDoneButtonClick());
@@ -128,11 +127,10 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 //        editor.apply();
 //    }
 
-    private void handleNotificationIconClick() {
+    private void handleNotificationIconClick(String userName) {
         if (!pendingRequests.isEmpty()) {
             Request request = pendingRequests.get(0);
-            showRequestDialog(request.getDocId(), request.getDescription(), request.getDeadline(), request.getDocumentUrl());
-            // Optionally, you might want to remove the request from pendingRequests instead of clearing it
+            showRequestDialog(userName,request.getDocId(), request.getDescription(), request.getDeadline(), request.getDocumentUrl());
             pendingRequests.remove(0); // Remove the request after handling it
         } else {
             Toast.makeText(this, "No current requests available.", Toast.LENGTH_SHORT).show();
@@ -227,9 +225,17 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                                 String deadline =  facultySnapshot.child("deadline").getValue(String.class);
                                 String project = facultySnapshot.child("projectUrl").getValue(String.class);
 
-                                if (!acceptedPdfEntries.containsKey(userId)) {
-                               addAcceptedPdfEntry(fileName, deadline, userId, project);
+                                String status = facultySnapshot.child("status").getValue(String.class);
+                                if(status.equals("accepted")){
+                                    Log.e("aman_log", status);
+                                    addAcceptedPdfEntry(fileName, deadline, userId, project);
                                 }
+                                else {
+                                    Log.d("aman-log", "No record found");
+                                }
+//                                if (!acceptedPdfEntries.containsKey(userId)) {
+//                               addAcceptedPdfEntry(fileName, deadline, userId, project);
+//                                }
                             }
                         } else {
                             Log.e("AdminActivity", "No faculty data found.");
@@ -259,7 +265,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                             for (DataSnapshot requestSnapshot : dataSnapshot.getChildren()) {
                                 String status= requestSnapshot.child("status").getValue(String.class);
                                 if(status.equals("pending")){
-                                    String docId = requestSnapshot.getKey(); // Get the unique ID of the request
+                                    String docId = requestSnapshot.getKey();
                                     String description = requestSnapshot.child("description").getValue(String.class);
                                     String deadline = requestSnapshot.child("deadline").getValue(String.class);
                                     String documentUrl = requestSnapshot.child("fileUri").getValue(String.class);
@@ -300,7 +306,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         }
     }
 
-    private void showRequestDialog(String docId, String description, String deadline, String documentUrl) {
+    private void showRequestDialog(String userName ,String docId, String description, String deadline, String documentUrl) {
         requestDialog = new BottomSheetDialog(this);
         View dialogView = getLayoutInflater().inflate(R.layout.request_dialog, null);
         requestDialog.setContentView(dialogView);
@@ -313,9 +319,12 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         descriptionTextView.setText(description);
         deadlineTextView.setText(deadline);
 
+        String[] s = userName.split(" ");
+        String userId = s[0];
 //        descriptionTextView.setOnClickListener(v -> acceptRequest(docId));
-        acceptButton.setOnClickListener(v -> updateRequestStatus(docId, "accepted", deadline));
-        rejectButton.setOnClickListener(v -> updateRequestStatus(docId, "rejected", null));
+        acceptButton.setOnClickListener(v -> updateRequestStatus(userId ,docId, "accepted", deadline));
+        Log.e("aman1", userId+docId);
+        rejectButton.setOnClickListener(v -> updateRequestStatus(userId, docId, "rejected", null));
 
         requestDialog.show();
     }
@@ -414,59 +423,64 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                 }
             }
         }
-    private void updateRequestStatus(String docId, String status, @Nullable String deadline) {
+    private void updateRequestStatus(String userName, String docId, String status, @Nullable String deadline) {
         Log.d("Faculty", "Attempting to update request status for Document ID: " + docId + " with deadline: " + deadline);
 
-        firestore.collection("requests").document(docId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Log.d("Faculty", "Document found: " + docId);
-                        String currentStatus = documentSnapshot.getString("status");
-                        if (!currentStatus.equals(status)) {
-                            firestore.collection("requests").document(docId)
-                                    .update("status", status)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d("Faculty", "Successfully updated Document ID: " + docId + " to status: " + status);
-                                        Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
+        DatabaseReference requestRef = databaseReference.child(userName+"/projects/"+docId);
+        Log.e("alokik", userName+"/projects/"+docId );
 
-                                        // Remove the request from pendingRequests
-                                        removePendingRequest(docId);
+        requestRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Log.d("Faculty", "Document found: " + docId);
+                    String currentStatus = dataSnapshot.child("status").getValue(String.class);
+                    if (!currentStatus.equals(status)) {
+                        requestRef.child("status").setValue(status)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("Faculty", "Successfully updated Document ID: " + docId + " to status: " + status);
+                                    Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
 
-                                        // Decrement pending count only if the request is accepted or rejected
-                                        if (status.equals("accepted") || status.equals("rejected")) {
-                                            pendingCount--; // Decrement pending count
-                                            totalPendingEditText.setText(String.valueOf(pendingCount)); // Update the EditText
-                                            lastNotificationCount--; // Decrement notification count
-                                            updateNotificationCount(lastNotificationCount); // Update notification count
-                                        }
+                                    // Remove the request from pendingRequests
+                                    removePendingRequest(docId);
 
-                                        if (status.equals("accepted")) {
-                                            totalInReviewCount++;
-                                            totalProjects++;
-                                        }
+                                    // Decrement pending count only if the request is accepted or rejected
+                                    if (status.equals("accepted") || status.equals("rejected")) {
+                                        pendingCount--; // Decrement pending count
+                                        totalPendingEditText.setText(String.valueOf(pendingCount)); // Update the EditText
+                                        lastNotificationCount--; // Decrement notification count
+                                        updateNotificationCount(lastNotificationCount); // Update notification count
+                                    }
 
-                                        updateDashboardCounts();
-//                                        notifyAdminOfResponse(docId, status);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("Faculty", "Failed to update request status: " + e.getMessage());
-                                        Toast.makeText(Faculty.this, "Failed to update request status. Please try again.", Toast.LENGTH_SHORT).show();
-                                    });
-                        } else {
-                            Log.d("Faculty", "Document ID: " + docId + " already has status: " + status);
-                        }
+                                    if (status.equals("accepted")) {
+                                        totalInReviewCount++;
+                                        totalProjects++;
+                                    }
+
+                                    updateDashboardCounts();
+                                    // Optionally notify the admin of the response
+//                                    notifyAdminOfResponse(docId, status);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("Faculty", "Failed to update request status: " + e.getMessage());
+                                    Toast.makeText(Faculty.this, "Failed to update request status. Please try again.", Toast.LENGTH_SHORT).show();
+                                });
                     } else {
-                        Log.e("Faculty", "Document does not exist: " + docId);
-                        Toast.makeText(Faculty.this, "Request not found. Please refresh and try again.", Toast.LENGTH_SHORT).show();
+                        Log.d("Faculty", "Document ID: " + docId + " already has status: " + status);
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Faculty", "Failed to retrieve document: " + e.getMessage());
-                    Toast.makeText(Faculty.this, "Failed to retrieve request. Please try again.", Toast.LENGTH_SHORT).show();
-                });
-    }
+                } else {
+                    Log.e("Faculty", "Document does not exist: " + docId);
+                    Toast.makeText(Faculty.this, "Request not found. Please refresh and try again.", Toast.LENGTH_SHORT).show();
+                }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("Faculty", "Failed to retrieve document: " + databaseError.getMessage());
+                Toast.makeText(Faculty.this, "Failed to retrieve request. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     private void removePendingRequest(String docId) {
         boolean removed = pendingRequests.removeIf(request -> request.getDocId().equals(docId));
         if (removed) {
@@ -476,7 +490,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         }
     }
 
-    private void addAcceptedPdfEntry(String pdfName, String deadline, String docId, String documentUrl) {
+    private void addAcceptedPdfEntry(String pdfName, String deadline, String docId, String status) {
         LinearLayout pdfEntry = new LinearLayout(this);
         pdfEntry.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,

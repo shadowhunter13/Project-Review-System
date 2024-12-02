@@ -408,7 +408,8 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                 return;
             }
 //            sendNewRequest(description, selectedDeadline, selectedFileUri.toString(), researcherId); // Pass researcherId
-            saveProjectDataToRealtimeDatabase(researcherId, selectedDeadline,description, selectedFileUri.toString(),"abcd",name);
+            saveProjectDataToRealtimeDatabase(researcherId, selectedDeadline,description, selectedFileUri.toString(),name);
+            Toast.makeText(this, "Request successfully sent", Toast.LENGTH_SHORT).show();
             bottomSheetDialog.dismiss();
         });
 
@@ -523,14 +524,15 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                 });
     }
 
-    private void saveProjectDataToRealtimeDatabase(String projectId, String deadline, String description, String Purl, String title,String name) {
+    private void saveProjectDataToRealtimeDatabase(String projectId, String deadline, String description, String Purl,String name) {
         // Create a map for the researcher data
         String[] uniqueId = name.split(" ");
 
         databaseReference = FirebaseDatabase.getInstance().getReference("researchers/"+uniqueId[0]+"/projects"); // Reference to the "researchers" node
-
+        String title2=getFileName(selectedFileUri);
+        Log.d("am_log", title2);
         Map<String, Object> researcherData = new HashMap<>();
-        researcherData.put("title", title);
+        researcherData.put("title", title2);
         researcherData.put("description", description);
         researcherData.put("deadline", deadline); // Set default or empty department
         researcherData.put("projectUrl", Purl);
