@@ -125,7 +125,6 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
             requestStatus.put("status", selectedStatus);
             requestStatus.put("comments", commentsEditText.getText().toString());
             requestStatus.put("completionDate", selectedDate);
-            // Add other necessary fields...
 
             // Get the current user's ID
             String userId = auth.getCurrentUser ().getUid();
@@ -139,6 +138,11 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
                             String facultyImageUrl = userDocument.getString("profile_photo");
                             requestStatus.put("facultyName", facultyName);
                             requestStatus.put("facultyIcon", facultyImageUrl);
+
+                            // Create the notification message
+                            String pdfName = pdfNameTextView.getText().toString(); // Get the PDF name
+                            String notificationMessage = facultyName + " has " + selectedStatus + " the PDF: " + pdfName;
+                            requestStatus.put("notificationMessage", notificationMessage); // Add the notification message
 
                             // Reference to the admin notifications collection
                             DocumentReference adminNotificationsRef = firestore.collection("admin_notifications").document(requestId);
@@ -181,7 +185,6 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
     }
 
     private void sendStatusToAdmin(Map<String, Object> requestStatus) {
-        // Send the request status to the admin_notifications collection
         firestore.collection("admin_notifications").add(requestStatus)
                 .addOnSuccessListener(documentReference -> {
                     Log.d("ReviewedPdfDialog", "Status sent to admin_notifications successfully: " + documentReference.getId());

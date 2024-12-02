@@ -3,6 +3,7 @@ package com.example.projectreviewsystem;
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import com.google.firebase.auth.FirebaseUser ;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
@@ -28,11 +29,18 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,6 +51,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -58,14 +67,17 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
     private EditText rejectedReviewsCount;
     private FirebaseFirestore firestore;
     private Set<String> processedNotificationIds = new HashSet<>();
+    private DatabaseReference databaseReference; // Reference to the Realtime Database
 
-    
+
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
         firestore = FirebaseFirestore.getInstance();
+        databaseReference = FirebaseDatabase.getInstance().getReference("researchers"); // Reference to the "researchers" node
 
         initializeViews();
         loadCountsFromFirestore();
@@ -115,7 +127,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
         countsRef.update("rejected", FieldValue.increment(1))
                 .addOnSuccessListener(aVoid -> {
                     Log.d("AdminActivity", "Rejected count incremented successfully");
-                    // Update the UI after a successful increment
+                    // Update the UI after a succ   essful increment
                     countsRef.get().addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
                             long rejectedCount = documentSnapshot.getLong("rejected") != null ? documentSnapshot.getLong("rejected") : 0;
@@ -149,7 +161,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
             // Assuming you have a way to get the researcherId for each button
             String researcherId = getResearcherIdForButton(i); // Implement this method to get the correct researcherId
 
-            sendButton.setOnClickListener(v -> showBottomSheetDialog(researcherId)); // Pass the researcherId
+//            sendButton.setOnClickListener(v -> showBottomSheetDialog(researcherId,name)); // Pass the researcherId
         }
     }
 
@@ -287,88 +299,91 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
     }
 
     private void fetchFacultyData() {
-        firestore.collection("faculty")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        int facultyCount = 1;
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String facultyName = document.getString("name");
-                            String facultyImageUrl = document.getString("profile_photo");
-                            String userId = document.getId(); // Get the unique ID of the faculty member
+        databaseReference // Reference to the "researchers" node in the Realtime Database
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            int facultyCount = 1;
+                            for (DataSnapshot facultySnapshot : dataSnapshot.getChildren()) {
+                                // Extract faculty details
+                                String userId = facultySnapshot.getKey();
+                                String facultyName = facultySnapshot.child("name").getValue(String.class);
+                                String facultyEmail = facultySnapshot.child("email").getValue(String.class);
+                                String facultyDesignation = facultySnapshot.child("designation").getValue(String.class);
+                                String facultyDepartment = facultySnapshot.child("department").getValue(String.class);
+                                Log.d("aman", "onDataChange: "+ facultyName+ facultyEmail);
+                                // Extract project details (example for "uhgb" project key)
+//                                DataSnapshot projectSnapshot = facultySnapshot.child("projects").child("uhgb");
+//                                String projectTitle = projectSnapshot.child("title").getValue(String.class);
+//                                String projectDescription = projectSnapshot.child("description").getValue(String.class);
+//                                String projectDeadline = projectSnapshot.child("deadline").getValue(String.class);
 
-                            fetchDesignationData(userId, facultyCount, facultyName, facultyImageUrl);
-                            facultyCount++;
+                                // Call the method to display the faculty and project details
+                                fetchDesignationData(userId, facultyCount, facultyName, facultyEmail, facultyDesignation, facultyDepartment);
+                                facultyCount++;
+                            }
+                        } else {
+                            Log.e("AdminActivity", "No faculty data found.");
                         }
-                    } else {
-                        Log.e("AdminActivity", "Error fetching faculty data: ", task.getException());
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e("AdminActivity", "Error fetching faculty data: ", databaseError.toException());
                     }
                 });
     }
 
-    private void fetchDesignationData(String userId, int facultyCount, String facultyName, String facultyImageUrl) {
-        firestore.collection("designation").document(userId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        DocumentSnapshot designationDocument = task.getResult();
-                        String facultyDesignation = designationDocument.getString("designation");
-                        String facultyDepartment = designationDocument.getString("department");
-
-                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, facultyDesignation, facultyDepartment, userId);
-                    } else {
-                        populateFacultyLayout(facultyCount, facultyName, facultyImageUrl, null, null, userId);
-                        Log.e("AdminActivity", "Error fetching designation data: ", task.getException());
-                    }
-                });
+    private void fetchDesignationData(String userId, int facultyCount, String facultyName, String facultyEmail, String facultyDesignation, String facultyDepartment) {
+        populateFacultyLayout(facultyCount, facultyName, facultyEmail, facultyDesignation, facultyDepartment, userId);
     }
 
-    private void populateFacultyLayout(int facultyIndex, String name, String imageUrl, String designation, String department, String researcherId) {
+    private void populateFacultyLayout(int facultyIndex, String name, String email, String designation, String department, String researcherId) {
         int layoutId = getResources().getIdentifier("faculty_" + facultyIndex, "id", getPackageName());
         LinearLayout facultyLayout = findViewById(layoutId);
 
         if (facultyLayout != null) {
+            // Set basic faculty details
             TextView facultyNameTextView = facultyLayout.findViewById(getResources().getIdentifier("textView" + facultyIndex, "id", getPackageName()));
+//            TextView facultyEmailTextView = facultyLayout.findViewById(getResources().getIdentifier("email" + facultyIndex, "id", getPackageName()));
             facultyNameTextView.setText(name);
-
-            CircleImageView facultyImageView = facultyLayout.findViewById(getResources().getIdentifier("imageView" + facultyIndex, "id", getPackageName()));
-            Glide.with(this)
-                    .load(imageUrl)
-                    .error(R.drawable.logo)
-                    .listener(new RequestListener<Drawable>() {
-                        @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            Log.e("GlideError", "Image load failed for URL: " + imageUrl, e);
-                            return false;
-                        }
-
-                        @Override
-                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            Log.d("GlideSuccess", "Image loaded successfully for URL: " + imageUrl);
-                            return false;
-                        }
-                    })
-                    .into(facultyImageView);
+//            facultyEmailTextView.setText(email);
 
             TextView facultyDesignationTextView = facultyLayout.findViewById(getResources().getIdentifier("designation" + facultyIndex, "id", getPackageName()));
             TextView facultyDepartmentTextView = facultyLayout.findViewById(getResources().getIdentifier("department" + facultyIndex, "id", getPackageName()));
+            facultyDesignationTextView.setText(designation != null ? designation : "N/A");
+            facultyDepartmentTextView.setText(department != null ? department : "N/A");
 
-            if (designation != null && department != null) {
-                facultyDesignationTextView.setText(designation);
-                facultyDepartmentTextView.setText(department);
-            } else {
-                facultyDesignationTextView.setText("N/A");
-                facultyDepartmentTextView.setText("N/A");
-            }
+//            CircleImageView facultyImageView = facultyLayout.findViewById(getResources().getIdentifier("imageView" + facultyIndex, "id", getPackageName()));
+//            Glide.with(this)
+//                    .load(imageUrl)
+//                    .error(R.drawable.logo)
+//                    .listener(new RequestListener<Drawable>() {
+//                        @Override
+//                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+//                            Log.e("GlideError", "Image load failed for URL: " + imageUrl, e);
+//                            return false;
+//                        }
+//
+//                        @Override
+//                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+//                            Log.d("GlideSuccess", "Image loaded successfully for URL: " + imageUrl);
+//                            return false;
+//                        }
+//                    })
+//                    .into(facultyImageView);
+//
 
+            // Handle button actions
             Button sendButton = facultyLayout.findViewById(getResources().getIdentifier("s" + facultyIndex, "id", getPackageName()));
-            sendButton.setOnClickListener(v -> showBottomSheetDialog(researcherId)); // Pass the researcherId
+            sendButton.setOnClickListener(v -> showBottomSheetDialog(researcherId, name)); // Pass the researcherId
         } else {
             Log.e("AdminActivity", "Faculty layout not found for index: " + facultyIndex);
         }
     }
 
-    private void showBottomSheetDialog(String researcherId) { // Accept researcherId as a parameter
+    private void showBottomSheetDialog(String researcherId,String name) { // Accept researcherId as a parameter
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_dialog, null);
         bottomSheetDialog.setContentView(bottomSheetView);
@@ -387,11 +402,13 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
         sendRequestButton.setOnClickListener(v -> {
             String description = descriptionEditText.getText().toString();
+
             if (description.isEmpty() || selectedDeadline == null || selectedFileUri == null) {
                 Toast.makeText(this, "Please fill in all fields and select a file.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            sendNewRequest(description, selectedDeadline, selectedFileUri.toString(), researcherId); // Pass researcherId
+//            sendNewRequest(description, selectedDeadline, selectedFileUri.toString(), researcherId); // Pass researcherId
+            saveProjectDataToRealtimeDatabase(researcherId, selectedDeadline,description, selectedFileUri.toString(),"abcd",name);
             bottomSheetDialog.dismiss();
         });
 
@@ -417,12 +434,12 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
     private void openFileSelector() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*"); // Allow all file types
         intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
                 "application/pdf", "application/msword",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         });
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, 1001);
     }
 
@@ -437,6 +454,8 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
             } else {
                 Toast.makeText(this, "Failed to get file URI", Toast.LENGTH_SHORT).show();
             }
+        } else {
+            Toast.makeText(this, "File selection canceled or failed.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -460,6 +479,8 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
     private boolean isRequestInProgress = false; // Flag to prevent multiple submissions
 
     private void sendNewRequest(String description, String deadline, String documentUrl, String researcherId) { // Add researcherId parameter
+        databaseReference = FirebaseDatabase.getInstance().getReference("researchers/u01"); // Reference to the "researchers" node
+
         if (isRequestInProgress) {
             Toast.makeText(this, "Request is already being processed. Please wait.", Toast.LENGTH_SHORT).show();
             return; // Prevent multiple submissions
@@ -485,7 +506,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
         requestData.put("description", description);
         requestData.put("deadline", formattedDeadline);
         requestData.put("fileUri", documentUrl);
-                requestData.put("fileName", getFileName(selectedFileUri));
+        requestData.put("fileName", getFileName(selectedFileUri));
         requestData.put("status", "pending");
         requestData.put("researcherId", researcherId); // Add researcher ID to the request data
 
@@ -501,6 +522,30 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                     isRequestInProgress = false; // Reset the flag on failure
                 });
     }
+
+    private void saveProjectDataToRealtimeDatabase(String projectId, String deadline, String description, String Purl, String title,String name) {
+        // Create a map for the researcher data
+        String[] uniqueId = name.split(" ");
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("researchers/"+uniqueId[0]+"/projects"); // Reference to the "researchers" node
+
+        Map<String, Object> researcherData = new HashMap<>();
+        researcherData.put("title", title);
+        researcherData.put("description", description);
+        researcherData.put("deadline", deadline); // Set default or empty department
+        researcherData.put("projectUrl", Purl);
+        researcherData.put("status", "pending");
+        // Set default or empty designation
+
+        projectId = "PROJECT_" + UUID.randomUUID().toString().replace("-", "").substring(0, 4);
+        // Save the researcher data under the "researchers" node
+        databaseReference.child(projectId).setValue(researcherData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.i("RealtimeDatabase", "Researcher data saved successfully");
+                })
+                .addOnFailureListener(e -> Log.e("RealtimeDatabase", "Failed to save researcher data", e));
+    }
+
     private void incrementPendingAndInProgressCounts() {
         DocumentReference countsRef = firestore.collection("dashboard_counts").document("counts");
 
@@ -585,21 +630,23 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                         }
                     }
 
-                    // Optionally, you can fetch completed and rejected counts directly from Firestore
                     fetchCompletedAndRejectedCounts();
                 });
     }
     private void displayNotification(QueryDocumentSnapshot document) {
+        // Check if the activity is finishing or destroyed
+        if (isFinishing() || isDestroyed()) {
+            return; // Exit the method if the activity is not in a valid state
+        }
+
         String facultyName = document.getString("facultyName");
         String facultyIcon = document.getString("facultyIcon");
 
-        // Create a view for the notification
         View notificationView = getLayoutInflater().inflate(R.layout.notification_item, null);
         CircleImageView facultyIconView = notificationView.findViewById(R.id.faculty_icon);
         TextView notificationMessageView = notificationView.findViewById(R.id.notification_message);
         TextView notificationTimeView = notificationView.findViewById(R.id.notification_time);
 
-        // Set the notification message
         notificationMessageView.setText(facultyName + " has " + document.getString("status") + " the request.");
 
         // Load the faculty icon using Glide
@@ -608,11 +655,9 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                 .error(R.drawable.ic_launcher_background)
                 .into(facultyIconView);
 
-        // Get the current time and set it to the notification time view
         String currentTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
         notificationTimeView.setText(currentTime);
 
-        // Add the new notification view to the container
         LinearLayout notificationContainer = findViewById(R.id.notification_container);
         if (notificationContainer != null) {
             notificationContainer.addView(notificationView);

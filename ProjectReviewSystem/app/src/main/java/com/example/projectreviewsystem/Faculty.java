@@ -25,6 +25,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -53,6 +58,8 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
     private static final String KEY_PENDING_COUNT = "pendingCount";
     private static final String KEY_IN_REVIEW_COUNT = "inReviewCount";
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private DatabaseReference databaseReference; // Reference to the Realtime Database
+
 
     private EditText totalPendingEditText;
     private EditText totalProjectsEditText;
@@ -74,14 +81,16 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 
         // Initialize SharedPreferences
 //        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        databaseReference = FirebaseDatabase.getInstance().getReference("researchers"); // Reference to the "researchers" node
+
 
         // Initialize views
         initializeViews();
         firestore = FirebaseFirestore.getInstance();
-
+        String userName = getIntent().getStringExtra("USER_NAME");
         // Load initial data
-        loadAcceptedRequests();
-        listenForCurrentRequest();
+        loadAcceptedRequests(userName);
+        listenForCurrentRequest(userName);
 //        loadCountsFromPreferences();
         updateDashboardCounts();
 
@@ -176,55 +185,107 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         // Handle request sent logic if needed
     }
 
-    private void loadAcceptedRequests() {
-        FirebaseUser  user = FirebaseAuth.getInstance().getCurrentUser ();
-        if (user == null) {
-            Toast.makeText(this, "You need to be logged in to access this feature.", Toast.LENGTH_SHORT).show();
-            return; // Exit if the user is not authenticated
-        }
+    private void loadAcceptedRequests(String userName) {
+//        FirebaseUser  user = FirebaseAuth.getInstance().getCurrentUser ();
+//        if (user == null) {
+//            Toast.makeText(this, "You need to be logged in to access this feature.", Toast.LENGTH_SHORT).show();
+//            return; // Exit if the user is not authenticated
+//        }
+//
+//        firestore.collection("requests")
+//                .whereEqualTo("status", "accepted")
+//                .addSnapshotListener((snapshots, e) -> {
+//                    if (e != null || snapshots == null) return;
+//
+//                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
+//                        if (dc.getType() == DocumentChange.Type.ADDED) {
+//                            String docId = dc.getDocument().getId();
+//                            String fileName = dc.getDocument().getString("fileName");
+//                            String deadline = dc.getDocument().getString("deadline");
+//                            String documentUrl = dc.getDocument().getString("fileUri");
+//
+//                            if (!acceptedPdfEntries.containsKey(docId)) {
+//                                addAcceptedPdfEntry(fileName, deadline, docId, documentUrl);
+//                            }
+//                        }
+//                    }
+//                });
+        Log.d("aman", "username: "+ userName);
+        String[] s = userName.split(" ");
+        String uniqueId = s[0];
+        databaseReference.child(uniqueId+"/projects") // Reference to the "researchers" node in the Realtime Database
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            int facultyCount = 1;
+                            for (DataSnapshot facultySnapshot : dataSnapshot.getChildren()) {
+                                // Extract faculty details
+                                String userId = facultySnapshot.getKey();
+//                                DataSnapshot projectSnapshot = facultySnapshot.child("projects").child("uhgb");
+                                String fileName = facultySnapshot.child("title").getValue(String.class);
+                                String deadline =  facultySnapshot.child("deadline").getValue(String.class);
+                                String project = facultySnapshot.child("projectUrl").getValue(String.class);
 
-        firestore.collection("requests")
-                .whereEqualTo("status", "accepted")
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) return;
-
-                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                        if (dc.getType() == DocumentChange.Type.ADDED) {
-                            String docId = dc.getDocument().getId();
-                            String fileName = dc.getDocument().getString("fileName");
-                            String deadline = dc.getDocument().getString("deadline");
-                            String documentUrl = dc.getDocument().getString("fileUri");
-
-                            if (!acceptedPdfEntries.containsKey(docId)) {
-                                addAcceptedPdfEntry(fileName, deadline, docId, documentUrl);
+                                if (!acceptedPdfEntries.containsKey(userId)) {
+                               addAcceptedPdfEntry(fileName, deadline, userId, project);
+                                }
                             }
+                        } else {
+                            Log.e("AdminActivity", "No faculty data found.");
                         }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e("AdminActivity", "Error fetching faculty data: ", databaseError.toException());
                     }
                 });
     }
 
-    private void listenForCurrentRequest() {
-        firestore.collection("requests")
-                .whereEqualTo("status", "pending") // Assuming "pending" means it's a new request
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) return;
+    private void listenForCurrentRequest(String userName) {
+        String[] s = userName.split(" ");
+        String uniqueId = s[0];
+        databaseReference.child(uniqueId+"/projects")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
 
-                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                        if (dc.getType() == DocumentChange.Type.ADDED) {
-                            String docId = dc.getDocument().getId();
-                            String description = dc.getDocument().getString("description");
-                            String deadline = dc.getDocument().getString("deadline");
-                            String documentUrl = dc.getDocument().getString("fileUri");
 
-                            // Create a new Request object and add it to the list
-                            Request newRequest = new Request(docId, description, deadline, documentUrl);
-                            pendingRequests.add(newRequest); // Add to the pendingRequests list
-                            pendingCount++; // Increment pending count
-                            lastNotificationCount++; // Increment notification count
-                            updateNotificationCount(lastNotificationCount);
-                            totalPendingEditText.setText(String.valueOf(pendingCount));
-                            Log.d("Faculty", "New pending request added: " + docId);
+                            pendingRequests.clear(); // Clear the existing list to avoid duplicates
+                            pendingCount = 0; // Reset pending count
+
+                            for (DataSnapshot requestSnapshot : dataSnapshot.getChildren()) {
+                                String status= requestSnapshot.child("status").getValue(String.class);
+                                if(status.equals("pending")){
+                                    String docId = requestSnapshot.getKey(); // Get the unique ID of the request
+                                    String description = requestSnapshot.child("description").getValue(String.class);
+                                    String deadline = requestSnapshot.child("deadline").getValue(String.class);
+                                    String documentUrl = requestSnapshot.child("fileUri").getValue(String.class);
+
+                                    // Create a new Request object and add it to the list
+                                    Request newRequest = new Request(docId, description, deadline, documentUrl);
+                                    pendingRequests.add(newRequest); // Add to the pendingRequests list
+                                    pendingCount++; // Increment pending count
+                                    lastNotificationCount++; // Increment notification count
+                                    updateNotificationCount(lastNotificationCount);
+                                    totalPendingEditText.setText(String.valueOf(pendingCount));
+                                    Log.d("Faculty", "Pending requests updated. Total: " + pendingCount);
+                                }
+
+
+                            }
+
+
+                        } else {
+                            Log.d("Faculty", "No pending requests found.");
                         }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e("Faculty", "Error fetching pending requests: ", databaseError.toException());
                     }
                 });
     }

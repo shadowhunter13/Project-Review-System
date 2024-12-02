@@ -48,10 +48,6 @@ public class LoginAdmin extends AppCompatActivity {
 
         googleSignIn.setOnClickListener(v -> startGoogleSignIn());
         loginButton.setOnClickListener(v -> signInWithEmail());
-
-//        if (firebaseAuth.getCurrentUser() != null) {
-//            redirectToAdminDashboard();
-//        }
     }
 
     private void configureGoogleSignIn() {
@@ -91,11 +87,10 @@ public class LoginAdmin extends AppCompatActivity {
         firebaseAuth.signInWithCredential(GoogleAuthProvider.getCredential(account.getIdToken(), null))
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        String userId = firebaseAuth.getCurrentUser ().getUid();
                         String email = account.getEmail();
                         Uri photoUri = account.getPhotoUrl();
-                        saveAdminDataToFirestore(firebaseAuth.getCurrentUser().getUid(), email, photoUri);
-                        showSnackbar("Google Sign-In Successful", true);
-                        redirectToAdminDashboard();
+                        checkIfAdminExists(userId, email, photoUri); // Check if admin exists in Firestore
                     } else {
                         Log.e("GoogleSignIn", "Google Sign-In Failed: " + (task.getException() != null ? task.getException().getMessage() : ""));
                         showSnackbar("Google Sign-In Failed", false);
@@ -117,12 +112,11 @@ public class LoginAdmin extends AppCompatActivity {
             return;
         }
 
-        firebaseAuth.signInWithEmailAndPassword(email, password)
+        firebaseAuth .signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        saveAdminDataToFirestore(firebaseAuth.getCurrentUser().getUid(), email, null);
-                        showSnackbar("Sign-In Successful", true);
-                        redirectToAdminDashboard();
+                        String userId = firebaseAuth.getCurrentUser ().getUid();
+                        checkIfAdminExists(userId, email, null); // Check if admin exists in Firestore
                     } else {
                         Log.e("EmailSignIn", "Sign-In Failed: " + (task.getException() != null ? task.getException().getMessage() : "Unknown error"));
                         showSnackbar("Sign-In Failed", false);
@@ -130,18 +124,34 @@ public class LoginAdmin extends AppCompatActivity {
                 });
     }
 
+    private void checkIfAdminExists(String userId, String email, Uri photoUri) {
+        DocumentReference docRef = firestore.collection("admins").document(userId);
+        docRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                // Admin already exists, redirect to AdminActivity
+                redirectToAdminDashboard();
+            } else {
+                // Admin does not exist, save admin data to Firestore
+                saveAdminDataToFirestore(userId, email, photoUri);
+            }
+        });
+    }
+
     private void saveAdminDataToFirestore(String userId, String email, Uri photoUri) {
         DocumentReference docRef = firestore.collection("admins").document(userId);
 
         Map<String, Object> adminData = new HashMap<>();
         adminData.put("email", email);
-        adminData.put("name", firebaseAuth.getCurrentUser().getDisplayName());
+        adminData.put("name", firebaseAuth.getCurrentUser ().getDisplayName());
         if (photoUri != null) {
             adminData.put("profile_photo", photoUri.toString());
         }
 
         docRef.set(adminData)
-                .addOnSuccessListener(aVoid -> Log.i("Firestore", "Admin data saved successfully"))
+                .addOnSuccessListener(aVoid -> {
+                    Log.i("Firestore", "Admin data saved successfully");
+                    redirectToAdminDashboard(); // Redirect after saving data
+                })
                 .addOnFailureListener(e -> Log.e("Firestore", "Failed to save admin data: " + e.getMessage()));
     }
 
