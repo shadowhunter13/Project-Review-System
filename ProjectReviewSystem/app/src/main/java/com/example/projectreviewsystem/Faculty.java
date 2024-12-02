@@ -79,25 +79,26 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_faculty);
 
-        // Initialize SharedPreferences
+
 //        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         databaseReference = FirebaseDatabase.getInstance().getReference("researchers"); // Reference to the "researchers" node
 
 
-        // Initialize views
         initializeViews();
         firestore = FirebaseFirestore.getInstance();
         String userName = getIntent().getStringExtra("USER_NAME");
+
         listenForCurrentRequest(userName);
+
         loadAcceptedRequests(userName);
+
+
 //        loadCountsFromPreferences();
         updateDashboardCounts();
 
 
-        // Set up notification icon click listener
         notificationIcon.setOnClickListener(v -> handleNotificationIconClick(userName));
 
-        // Set up done button click listener
         doneButton.setOnClickListener(v -> handleDoneButtonClick());
     }
 
@@ -211,6 +212,11 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         Log.d("aman", "username: "+ userName);
         String[] s = userName.split(" ");
         String uniqueId = s[0];
+        String profileUrl;
+
+
+
+
         databaseReference.child(uniqueId+"/projects") // Reference to the "researchers" node in the Realtime Database
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -218,13 +224,11 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                         if (dataSnapshot.exists()) {
                             int facultyCount = 1;
                             for (DataSnapshot facultySnapshot : dataSnapshot.getChildren()) {
-                                // Extract faculty details
                                 String userId = facultySnapshot.getKey();
 //                                DataSnapshot projectSnapshot = facultySnapshot.child("projects").child("uhgb");
                                 String fileName = facultySnapshot.child("title").getValue(String.class);
                                 String deadline =  facultySnapshot.child("deadline").getValue(String.class);
                                 String project = facultySnapshot.child("projectUrl").getValue(String.class);
-
                                 String status = facultySnapshot.child("status").getValue(String.class);
                                 if(status.equals("accepted")){
                                     Log.e("aman_log", status);
@@ -294,6 +298,9 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                         Log.e("Faculty", "Error fetching pending requests: ", databaseError.toException());
                     }
                 });
+
+//        loadAcceptedRequests(userName);
+
     }
 
     private void updateNotificationCount(int count) {

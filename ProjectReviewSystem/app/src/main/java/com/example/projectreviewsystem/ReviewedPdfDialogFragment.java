@@ -129,15 +129,15 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
             // Get the current user's ID
             String userId = auth.getCurrentUser ().getUid();
 
-            // Fetch user details from Firestore
-            firestore.collection("faculty").document(userId).get()
-                    .addOnSuccessListener(userDocument -> {
-                        if (userDocument.exists()) {
+//            // Fetch user details from Firestore
+//            firestore.collection("faculty").document(userId).get()
+//                    .addOnSuccessListener(userDocument -> {
+//                        if (userDocument.exists()) {
                             // Add user details to the request status
-                            String facultyName = userDocument.getString("name");
-                            String facultyImageUrl = userDocument.getString("profile_photo");
+                            String facultyName = "Faculty";
+//                            String facultyImageUrl = userDocument.getString("profile_photo");
                             requestStatus.put("facultyName", facultyName);
-                            requestStatus.put("facultyIcon", facultyImageUrl);
+//                            requestStatus.put("facultyIcon", facultyImageUrl);
 
                             // Create the notification message
                             String pdfName = pdfNameTextView.getText().toString(); // Get the PDF name
@@ -175,13 +175,13 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
                             Log.w("ReviewedPdfDialog", "User  document does not exist");
                             Toast.makeText(getContext(), "User  information could not be retrieved", Toast.LENGTH_SHORT).show();
                         }
-                    }).addOnFailureListener(e -> {
-                        Log.w("ReviewedPdfDialog", "Error fetching user details", e);
-                        Toast.makeText(getContext(), "Error fetching user details", Toast.LENGTH_SHORT).show();
-                    });
-        } else {
-            Toast.makeText(getContext(), "Please select a status", Toast.LENGTH_SHORT).show();
-        }
+//                    }).addOnFailureListener(e -> {
+//                        Log.w("ReviewedPdfDialog", "Error fetching user details", e);
+//                        Toast.makeText(getContext(), "Error fetching user details", Toast.LENGTH_SHORT).show();
+//                    });
+//        } else {
+//            Toast.makeText(getContext(), "Please select a status", Toast.LENGTH_SHORT).show();
+//        }
     }
 
     private void sendStatusToAdmin(Map<String, Object> requestStatus) {
