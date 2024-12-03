@@ -112,6 +112,29 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
         decrementInReviewCount(); // Decrease the in-review count
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        clearNotifications();
+    }
+    private void clearNotifications() {
+        firestore.collection("admin_notifications")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // Remove each notification
+                            document.getReference().delete()
+                                    .addOnSuccessListener(aVoid -> Log.d("AdminActivity", "Notification cleared successfully"))
+                                    .addOnFailureListener(e -> Log.e("AdminActivity", "Error clearing notification", e));
+                        }
+                    } else {
+                        Log.e("AdminActivity", "Error fetching notifications: ", task.getException());
+                    }
+                });
+    }
+
+
     private void incrementCompletedCount() {
         DocumentReference countsRef = firestore.collection("dashboard_counts").document("counts");
         countsRef.update("completed", FieldValue.increment(1))
@@ -730,22 +753,9 @@ private void saveProjectDataToRealtimeDatabase(String projectId, String deadline
                     updatedCounts[3] = currentPending;
 
                     // Update counts based on the notification status
-                    switch (status) {
-                        case "approved":
-                            updatedCounts[0]++; // Increment completed
-                            updatedCounts[2]--; // Decrement inProgress
-                            updatedCounts[3]--; // Decrement pending
-                            break;
-                        case "removed":
-                        case "changes required":
-                            updatedCounts[1]++; // Increment rejected
-                            updatedCounts[2]--; // Decrement inProgress
-                            updatedCounts[3]--; // Decrement pending
-                            break;
-                        default:
-                            Log.w("AdminActivity", "Received unknown status: " + status);
-                            return; // Skip unknown statuses
-                    }
+                    // Decrement both inProgress and pending counts regardless of the status
+                    updatedCounts[2]--; // Decrement inProgress
+                    updatedCounts[3]--; // Decrement pending
 
                     // Ensure counts do not go below zero
                     updatedCounts[2] = Math.max(updatedCounts[2], 0); // inProgress
