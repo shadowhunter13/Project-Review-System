@@ -154,24 +154,23 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         args.putString("docId", docId);
         args.putString("description", description);
         args.putString("deadline", deadline);
+        args.putString("doneCount",""+doneCount);
+        args.putString("totalProjects",""+totalProjects);
+        args.putString("totalInReviewCount",""+totalInReviewCount);
+
         dialogFragment.setArguments(args);
         dialogFragment.show(getSupportFragmentManager(), "ReviewedPdfDialog");
     }
     @Override
-    public void onStatusSelected(String status, long updatedDoneCount , long updatedInReviewCount, long updatedTotalProjectsCount){
+    public void onStatusSelected(String status, int updatedDoneCount, int updatedInReviewCount, int updatedTotalProjectsCount) {
         Log.d("Faculty", "Status selected: " + status);
 
-        this.doneCount = (int) updatedDoneCount;
+        // Update the counts based on the values received from the dialog
+        this.doneCount = updatedDoneCount; // Increment done count
+        this.totalInReviewCount = updatedInReviewCount; // Update in review count
+        this.totalProjects = updatedTotalProjectsCount; // Update total projects count
 
-        if (this.totalInReviewCount > 0) {
-            this.totalInReviewCount--;
-        }
-
-        if (this.totalProjects > 0) {
-            this.totalProjects--; // Decrement total projects count
-        }
-
-        // Update the dashboard counts (if you still want to show the updated done count)
+        // Update the dashboard counts
         updateDashboardCounts();
 
         // Log the updated counts for debugging
@@ -217,7 +216,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 
 
 
-        databaseReference.child(uniqueId+"/projects") // Reference to the "researchers" node in the Realtime Database
+        databaseReference.child(uniqueId+"/projects")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -232,11 +231,14 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                                 String status = facultySnapshot.child("status").getValue(String.class);
                                 if(status.equals("accepted")){
                                     Log.e("aman_log", status);
+                                    totalProjects += 1;
                                     addAcceptedPdfEntry(fileName, deadline, userId, project);
+
                                 }
                                 else {
                                     Log.d("aman-log", "No record found");
                                 }
+
 //                                if (!acceptedPdfEntries.containsKey(userId)) {
 //                               addAcceptedPdfEntry(fileName, deadline, userId, project);
 //                                }
@@ -433,8 +435,8 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
     private void updateRequestStatus(String userName, String docId, String status, @Nullable String deadline) {
         Log.d("Faculty", "Attempting to update request status for Document ID: " + docId + " with deadline: " + deadline);
 
-        DatabaseReference requestRef = databaseReference.child(userName+"/projects/"+docId);
-        Log.e("alokik", userName+"/projects/"+docId );
+        DatabaseReference requestRef = databaseReference.child(userName + "/projects/" + docId);
+        Log.e("alokik", userName + "/projects/" + docId);
 
         requestRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -454,6 +456,9 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                                     // Decrement pending count only if the request is accepted or rejected
                                     if (status.equals("accepted") || status.equals("rejected")) {
                                         pendingCount--; // Decrement pending count
+                                        if(pendingCount<0){
+                                            pendingCount = 0;
+                                        }
                                         totalPendingEditText.setText(String.valueOf(pendingCount)); // Update the EditText
                                         lastNotificationCount--; // Decrement notification count
                                         updateNotificationCount(lastNotificationCount); // Update notification count
@@ -462,11 +467,16 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                                     if (status.equals("accepted")) {
                                         totalInReviewCount++;
                                         totalProjects++;
+
+                                        // Fetch the project details to display the PDF entry
+                                        String pdfName = dataSnapshot.child("title").getValue(String.class);
+                                        String documentUrl = dataSnapshot.child("fileUri").getValue(String.class);
+                                        displayAcceptedPdfEntry(pdfName, deadline, docId, documentUrl);
                                     }
 
                                     updateDashboardCounts();
                                     // Optionally notify the admin of the response
-                                    notifyAdminOfResponse(docId, status,userName);
+                                    notifyAdminOfResponse(docId, status, userName);
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.e("Faculty", "Failed to update request status: " + e.getMessage());
@@ -701,6 +711,10 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 //            Toast.makeText(this, "No pending requests available to update.", Toast.LENGTH_SHORT).show();
 //        }
 //    }
+private void displayAcceptedPdfEntry(String pdfName, String deadline, String docId, String documentUrl) {
+    // Add the accepted PDF entry to the UI
+    addAcceptedPdfEntry(pdfName, deadline, docId, documentUrl);
+}
 private void updateDashboardCounts() {
     totalPendingEditText.setText(String.valueOf(pendingCount));
     totalProjectsEditText.setText(String.valueOf(totalProjects)); // Update to show current total projects

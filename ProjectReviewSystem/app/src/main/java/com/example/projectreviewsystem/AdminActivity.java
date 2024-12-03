@@ -91,7 +91,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
     }
 
     @Override
-    public void onStatusSelected(String status, long doneCount, long inReviewCount, long totalProjectsCount) {
+    public void onStatusSelected(String status, int doneCount, int inReviewCount, int totalProjectsCount) {
         Log.d("AdminActivity", "Status selected: " + status + ", Done Count: " + doneCount +
                 ", In Review Count: " + inReviewCount + ", Total Projects Count: " + totalProjectsCount);
         Toast.makeText(this, "Status selected: " + status + ", Done Count: " + doneCount, Toast.LENGTH_SHORT).show();
