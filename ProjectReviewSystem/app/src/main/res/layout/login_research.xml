@@ -79,16 +79,7 @@
             android:textColorHint="@color/white"
             tools:ignore="HardcodedText" />
 
-        <TextView
-            android:id="@+id/forgotpassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Forgot Password"
-            android:textSize="20sp"
-            android:layout_marginTop="5dp"
-            android:textColor="#837E7E"
-            android:gravity="end"
-            android:textStyle="bold" />
+
 
         <View
             android:layout_width="match_parent"

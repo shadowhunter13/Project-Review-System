@@ -81,12 +81,16 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
         initializeViews();
         loadCountsFromFirestore();
-        createDashboardCountsDocument();
+
+//        createDashboardCountsDocument();
         fetchFacultyData();
         listenForDashboardCounts();
+
         listenForNotifications();
+
 //        listenForRequestUpdates();
-        initializeCountersIfNeeded();
+
+//        initializeCountersIfNeeded();
 
     }
 
@@ -96,11 +100,13 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                 ", In Review Count: " + inReviewCount + ", Total Projects Count: " + totalProjectsCount);
         Toast.makeText(this, "Status selected: " + status + ", Done Count: " + doneCount, Toast.LENGTH_SHORT).show();
 
-        updateCountsBasedOnStatus(status); // Call the method here
+        // Call the method to update counts based on the selected status
+        updateCountsBasedOnStatus(status);
 
+        // Only increment counts based on specific statuses
         if (status.equals("approved")) {
             incrementCompletedCount(); // Increase the count of completed reviews
-        } else if (status.equals("removed")) {
+        } else if (status.equals("removed") || status.equals("changes required")) {
             incrementRejectedCount(); // Increase the count of rejected reviews
         }
 
@@ -480,74 +486,73 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
     private boolean isRequestInProgress = false; // Flag to prevent multiple submissions
 
-    private void sendNewRequest(String description, String deadline, String documentUrl, String researcherId) { // Add researcherId parameter
-        databaseReference = FirebaseDatabase.getInstance().getReference("researchers/u01"); // Reference to the "researchers" node
+//    private void sendNewRequest(String description, String deadline, String documentUrl, String researcherId) { // Add researcherId parameter
+//        databaseReference = FirebaseDatabase.getInstance().getReference("researchers/u01"); // Reference to the "researchers" node
+//
+//        if (isRequestInProgress) {
+//            Toast.makeText(this, "Request is already being processed. Please wait.", Toast.LENGTH_SHORT).show();
+//            return; // Prevent multiple submissions
+//        }
+//
+//        isRequestInProgress = true; // Set the flag to true
+//
+//        SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+//        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+//        String formattedDeadline;
+//
+//        try {
+//            Date date = inputFormat.parse(deadline);
+//            formattedDeadline = outputFormat.format(date);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//            Toast.makeText(this, "Invalid deadline format", Toast.LENGTH_SHORT).show();
+//            isRequestInProgress = false; // Reset the flag
+//            return;
+//        }
+//
+//        Map<String, Object> requestData = new HashMap<>();
+//        requestData.put("description", description);
+//        requestData.put("deadline", formattedDeadline);
+//        requestData.put("fileUri", documentUrl);
+//        requestData.put("fileName", getFileName(selectedFileUri));
+//        requestData.put("status", "pending");
+//        requestData.put("researcherId", researcherId); // Add researcher ID to the request data
+//
+//        firestore.collection("requests").add(requestData)
+//                .addOnSuccessListener(documentReference -> {
+//                    Toast.makeText(this, "Request sent successfully", Toast.LENGTH_SHORT).show();
+//                    incrementPendingAndInProgressCounts(); // Increment both counts together
+//                    isRequestInProgress = false; // Reset the flag after processing
+//                })
+//                .addOnFailureListener(e -> {
+//                    Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show();
+//                    Log.e("AdminActivity", "Error sending request: ", e);
+//                    isRequestInProgress = false; // Reset the flag on failure
+//                });
+//    }
+private void saveProjectDataToRealtimeDatabase(String projectId, String deadline, String description, String Purl, String name) {
+    // Create a map for the researcher data
+    String[] uniqueId = name.split(" ");
 
-        if (isRequestInProgress) {
-            Toast.makeText(this, "Request is already being processed. Please wait.", Toast.LENGTH_SHORT).show();
-            return; // Prevent multiple submissions
-        }
+    databaseReference = FirebaseDatabase.getInstance().getReference("researchers/" + uniqueId[0] + "/projects"); // Reference to the "researchers" node
+    String title2 = getFileName(selectedFileUri);
+    Log.d("am_log", title2);
+    Map<String, Object> researcherData = new HashMap<>();
+    researcherData.put("title", title2);
+    researcherData.put("description", description);
+    researcherData.put("deadline", deadline);
+    researcherData.put("projectUrl", Purl);
+    researcherData.put("status", "pending");
 
-        isRequestInProgress = true; // Set the flag to true
-
-        SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-        String formattedDeadline;
-
-        try {
-            Date date = inputFormat.parse(deadline);
-            formattedDeadline = outputFormat.format(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Invalid deadline format", Toast.LENGTH_SHORT).show();
-            isRequestInProgress = false; // Reset the flag
-            return;
-        }
-
-        Map<String, Object> requestData = new HashMap<>();
-        requestData.put("description", description);
-        requestData.put("deadline", formattedDeadline);
-        requestData.put("fileUri", documentUrl);
-        requestData.put("fileName", getFileName(selectedFileUri));
-        requestData.put("status", "pending");
-        requestData.put("researcherId", researcherId); // Add researcher ID to the request data
-
-        firestore.collection("requests").add(requestData)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(this, "Request sent successfully", Toast.LENGTH_SHORT).show();
-                    incrementPendingAndInProgressCounts(); // Increment both counts together
-                    isRequestInProgress = false; // Reset the flag after processing
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show();
-                    Log.e("AdminActivity", "Error sending request: ", e);
-                    isRequestInProgress = false; // Reset the flag on failure
-                });
-    }
-
-    private void saveProjectDataToRealtimeDatabase(String projectId, String deadline, String description, String Purl,String name) {
-        // Create a map for the researcher data
-        String[] uniqueId = name.split(" ");
-
-        databaseReference = FirebaseDatabase.getInstance().getReference("researchers/"+uniqueId[0]+"/projects"); // Reference to the "researchers" node
-        String title2=getFileName(selectedFileUri);
-        Log.d("am_log", title2);
-        Map<String, Object> researcherData = new HashMap<>();
-        researcherData.put("title", title2);
-        researcherData.put("description", description);
-        researcherData.put("deadline", deadline); // Set default or empty department
-        researcherData.put("projectUrl", Purl);
-        researcherData.put("status", "pending");
-        // Set default or empty designation
-
-        projectId = "PROJECT_" + UUID.randomUUID().toString().replace("-", "").substring(0, 4);
-        // Save the researcher data under the "researchers" node
-        databaseReference.child(projectId).setValue(researcherData)
-                .addOnSuccessListener(aVoid -> {
-                    Log.i("RealtimeDatabase", "Researcher data saved successfully");
-                })
-                .addOnFailureListener(e -> Log.e("RealtimeDatabase", "Failed to save researcher data", e));
-    }
+    projectId = "PROJECT_" + UUID.randomUUID().toString().replace("-", "").substring(0, 4);
+    // Save the researcher data under the "researchers" node
+    databaseReference.child(projectId).setValue(researcherData)
+            .addOnSuccessListener(aVoid -> {
+                Log.i("RealtimeDatabase", "Researcher data saved successfully");
+                incrementPendingAndInProgressCounts(); // Increment counts when a request is sent
+            })
+            .addOnFailureListener(e -> Log.e("RealtimeDatabase", "Failed to save researcher data", e));
+}
 
     private void incrementPendingAndInProgressCounts() {
         DocumentReference countsRef = firestore.collection("dashboard_counts").document("counts");
@@ -612,6 +617,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
     }
 
     private void listenForNotifications() {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
         firestore.collection("admin_notifications")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) {
@@ -626,14 +632,30 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
                         // Check if this notification has already been processed
                         if (requestId != null && !processedNotificationIds.contains(requestId)) {
                             processedNotificationIds.add(requestId); // Mark this notification as processed
+
                             if (status != null) {
-                                updateCountsBasedOnStatus(status); // Process the status
-                                displayNotification(document); // Display the notification
+                                // Only update counts based on specific statuses
+                                switch (status) {
+                                    case "approved":
+                                        incrementCompletedCount(); // Increment completed count
+                                        break;
+                                    case "removed":
+                                    case "changes required":
+                                        incrementRejectedCount(); // Increment rejected count
+                                        break;
+                                    case "in progress":
+                                        decrementInReviewCount(); // Decrement in-progress count
+                                        break;
+                                    default:
+                                        Log.w("AdminActivity", "Received unknown status: " + status);
+                                        break;
+                                }
+
+                                // Display the notification
+                                displayNotification(document);
                             }
                         }
                     }
-
-                    fetchCompletedAndRejectedCounts();
                 });
     }
     private void displayNotification(QueryDocumentSnapshot document) {
@@ -688,58 +710,61 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
         });
     }
     private void updateCountsBasedOnStatus(String status) {
-        DocumentReference countsRef = firestore.collection("dashboard_counts").document("counts");
+        DocumentReference countsRef = FirebaseFirestore.getInstance().collection("dashboard_counts").document("counts");
 
-        firestore.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(countsRef);
-            if (snapshot.exists()) {
-                // Get current counts
-                int completed = snapshot.getLong("completed") != null ? snapshot.getLong("completed").intValue() : 0;
-                int rejected = snapshot.getLong("rejected") != null ? snapshot.getLong("rejected").intValue() : 0;
-                int inProgress = snapshot.getLong("inProgress") != null ? snapshot.getLong("inProgress").intValue() : 0;
-                int pending = snapshot.getLong("pending") != null ? snapshot.getLong("pending").intValue() : 0;
+        countsRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null) {
+                DocumentSnapshot snapshot = task.getResult();
+                if (snapshot.exists()) {
+                    // Get current counts
+                    int currentCompleted = snapshot.getLong("completed") != null ? snapshot.getLong("completed").intValue() : 0;
+                    int currentRejected = snapshot.getLong("rejected") != null ? snapshot.getLong("rejected").intValue() : 0;
+                    int currentInProgress = snapshot.getLong("inProgress") != null ? snapshot.getLong("inProgress").intValue() : 0;
+                    int currentPending = snapshot.getLong("pending") != null ? snapshot.getLong("pending").intValue() : 0;
 
-                // Update counts based on the notification status
-                switch (status) {
-                    case "approved":
-                        completed++;
-                        if (inProgress > 0) inProgress--;
-                        break;
-                    case "removed":
-                    case "changes required":
-                        rejected++;
-                        if (inProgress > 0) inProgress--;
-                        break;
-                    default:
-                        Log.w("AdminActivity", "Received unknown status: " + status);
-                        return null; // Skip unknown statuses
+                    // Create an array to hold updated counts
+                    int[] updatedCounts = new int[4]; // [updatedCompleted, updatedRejected, updatedInProgress, updatedPending]
+                    updatedCounts[0] = currentCompleted;
+                    updatedCounts[1] = currentRejected;
+                    updatedCounts[2] = currentInProgress;
+                    updatedCounts[3] = currentPending;
+
+                    // Update counts based on the notification status
+                    switch (status) {
+                        case "approved":
+                            updatedCounts[0]++; // Increment completed
+                            updatedCounts[2]--; // Decrement inProgress
+                            updatedCounts[3]--; // Decrement pending
+                            break;
+                        case "removed":
+                        case "changes required":
+                            updatedCounts[1]++; // Increment rejected
+                            updatedCounts[2]--; // Decrement inProgress
+                            updatedCounts[3]--; // Decrement pending
+                            break;
+                        default:
+                            Log.w("AdminActivity", "Received unknown status: " + status);
+                            return; // Skip unknown statuses
+                    }
+
+                    // Ensure counts do not go below zero
+                    updatedCounts[2] = Math.max(updatedCounts[2], 0); // inProgress
+                    updatedCounts[3] = Math.max(updatedCounts[3], 0); // pending
+
+                    // Update the counts in Firestore
+                    countsRef.update("completed", updatedCounts[0], "rejected", updatedCounts[1], "inProgress", updatedCounts[2], "pending", updatedCounts[3])
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("AdminActivity", "Counts updated successfully based on notification status");
+                                // Update UI with the final counts
+                                updateCounts(updatedCounts[3], updatedCounts[2], updatedCounts[0], updatedCounts[1]); // Update UI
+                            })
+                            .addOnFailureListener(e -> Log.e("AdminActivity", "Error updating counts based on notification status", e));
+                } else {
+                    Log.e("AdminActivity", "Counts document does not exist");
                 }
-
-                transaction.update(countsRef, "completed", completed);
-                transaction.update(countsRef, "rejected", rejected);
-                transaction.update(countsRef, "inProgress", inProgress);
-                transaction.update(countsRef, "pending", pending);
             } else {
-                Log.e("AdminActivity", "Counts document does not exist");
+                Log.e("AdminActivity", "Error fetching counts: ", task.getException());
             }
-            return null;
-        }).addOnSuccessListener(aVoid -> {
-            Log.d("AdminActivity", "Counts updated successfully based on notification status");
-            // Fetch updated counts to update UI
-            countsRef.get().addOnSuccessListener(updatedSnapshot -> {
-                if (updatedSnapshot.exists()) {
-                    int updatedCompleted = updatedSnapshot.getLong("completed") != null ? updatedSnapshot.getLong("completed").intValue() : 0;
-                    int updatedRejected = updatedSnapshot.getLong("rejected") != null ? updatedSnapshot.getLong("rejected").intValue() : 0;
-                    int updatedInProgress = updatedSnapshot.getLong("inProgress") != null ? updatedSnapshot.getLong("inProgress").intValue() : 0;
-                    int updatedPending = updatedSnapshot.getLong("pending") != null ? updatedSnapshot.getLong("pending").intValue() : 0;
-
-                    updateCounts(updatedPending, updatedInProgress, updatedCompleted, updatedRejected);
-                }
-            }).addOnFailureListener(e -> {
-                Log.e("AdminActivity", "Error fetching updated counts", e);
-            });
-        }).addOnFailureListener(e -> {
-            Log.e("AdminActivity", "Error updating counts based on notification status", e);
         });
     }
     private void updateCounts(int pending, int inProgress, int completed, int rejected) {

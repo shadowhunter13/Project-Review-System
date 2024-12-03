@@ -47,11 +47,11 @@ public class LoginResearcher extends AppCompatActivity {
         passwordEditText = findViewById(R.id.password);
         registerButton = findViewById(R.id.login_button);
         googleSignIn = findViewById(R.id.google);
-        forgotPassword = findViewById(R.id.forgotpassword);
+//        forgotPassword = findViewById(R.id.forgotpassword);
 
         registerButton.setOnClickListener(v -> registerUser ());
         googleSignIn.setOnClickListener(v -> startGoogleSignIn());
-        forgotPassword.setOnClickListener(v -> openEmailApp());
+//        forgotPassword.setOnClickListener(v -> openEmailApp());
 
         emailEditText.setTextColor(getResources().getColor(android.R.color.white));
         passwordEditText.setTextColor(getResources().getColor(android.R.color.white));
