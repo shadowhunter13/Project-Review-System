@@ -47,6 +47,10 @@ dependencies {
     implementation libs.glide // Check for the latest version
     annotationProcessor libs.compiler
     implementation libs.play.services.auth
+    implementation libs.firebase.storage
+    implementation libs.google.firebase.firestore
+    implementation libs.firebase.ui.storage
+
     implementation libs.swiperefreshlayout
 
     // Testing dependencies

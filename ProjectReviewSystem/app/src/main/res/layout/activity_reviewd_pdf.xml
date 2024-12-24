@@ -49,6 +49,9 @@
     <EditText
         android:id="@+id/comments_edit_text"
         android:layout_width="match_parent"
+        android:textColor="@color/white"
+        android:text="Enter your Review"
+        android:textAlignment="center"
         android:background="@drawable/rounded_edit_text"
         android:layout_height="50dp"
         android:layout_marginBottom="16dp"/>

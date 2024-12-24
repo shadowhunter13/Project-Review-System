@@ -53,7 +53,7 @@
                 android:id="@+id/Research"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/review"
+                android:src="@drawable/total"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp" />
 
@@ -71,7 +71,9 @@
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
+                android:focusable="false"
                 android:text="0"
+                android:clickable="false"
                 android:textAlignment="center"
                 android:background="@drawable/block_background"
                 android:backgroundTint="#D3D3D3"
@@ -89,7 +91,7 @@
                 android:id="@+id/Total"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/total"
+                android:src="@drawable/review"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp" />
 
@@ -107,6 +109,7 @@
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:text="0"
+                android:focusable="false"
                 android:layout_gravity="center"
                 android:textAlignment="center"
                 android:background="@drawable/block_background"
@@ -144,6 +147,7 @@
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:text="0"
+                android:focusable="false"
                 android:textAlignment="center"
                 android:background="@drawable/block_background"
                 android:backgroundTint="#D3D3D3"
@@ -179,6 +183,7 @@
                 android:layout_width="60dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
+                android:focusable="false"
                 android:text="0"
                 android:textAlignment="center"
                 android:background="@drawable/block_background"

@@ -24,7 +24,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sign In"
+            android:text="Log In"
             android:textSize="40sp"
             android:layout_marginTop="-10dp"
             android:textColor="@color/black"
@@ -79,16 +79,7 @@
             android:textColorHint="@color/white"
             tools:ignore="HardcodedText" />
 
-        <TextView
-            android:id="@+id/forgotpassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Forgot Password"
-            android:textSize="20sp"
-            android:layout_marginTop="5dp"
-            android:textColor="#837E7E"
-            android:gravity="end"
-            android:textStyle="bold" />
+
 
         <View
             android:layout_width="match_parent"
@@ -128,7 +119,7 @@
             android:layout_marginEnd="10dp"
             android:layout_marginTop="20dp"
             android:textColor="#174A97"
-            android:hint="Sign Up"
+            android:hint="Sign In"
             android:textAlignment="center"
             android:drawableStart="@drawable/google"
             android:textColorHint="@color/white"

@@ -3,6 +3,7 @@ package com.example.projectreviewsystem;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,8 +17,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class LoginResearcher extends AppCompatActivity {
 
     private FirebaseAuth firebaseAuth;
     private GoogleSignInClient googleSignInClient;
-    private FirebaseFirestore firestore;
+    private DatabaseReference databaseReference; // Reference to the Realtime Database
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +40,18 @@ public class LoginResearcher extends AppCompatActivity {
         setContentView(R.layout.login_research);
 
         firebaseAuth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
+        databaseReference = FirebaseDatabase.getInstance().getReference("researchers"); // Reference to the "researchers" node
         configureGoogleSignIn();
 
         emailEditText = findViewById(R.id.emailid);
         passwordEditText = findViewById(R.id.password);
         registerButton = findViewById(R.id.login_button);
         googleSignIn = findViewById(R.id.google);
-        forgotPassword = findViewById(R.id.forgotpassword);
+//        forgotPassword = findViewById(R.id.forgotpassword);
 
         registerButton.setOnClickListener(v -> registerUser ());
         googleSignIn.setOnClickListener(v -> startGoogleSignIn());
-        forgotPassword.setOnClickListener(v -> openEmailApp());
+//        forgotPassword.setOnClickListener(v -> openEmailApp());
 
         emailEditText.setTextColor(getResources().getColor(android.R.color.white));
         passwordEditText.setTextColor(getResources().getColor(android.R.color.white));
@@ -81,11 +82,67 @@ public class LoginResearcher extends AppCompatActivity {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
             if (task.isSuccessful() && firebaseAuth.getCurrentUser () != null) {
-                saveUserDataToFirestore(firebaseAuth.getCurrentUser ().getUid(), email, null);
+                String userId = firebaseAuth.getCurrentUser ().getUid();
+                String userName = email.split("@")[0]; // Extract username from email
+                checkIfUserExists(userId, email, userName,""); // Check if user exists in Realtime Database
             } else {
                 showSnackbar("Registration Failed: " + (task.getException() != null ? task.getException().getMessage() : ""), false);
             }
         });
+    }
+
+    private void checkIfUserExists(String userId, String email, String userName, String profilePhotoUrl) {
+        String[] s=userName.split(" ");
+        String userName2= s[0];
+        databaseReference.child(userName2).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                // User already exists, redirect to Faculty activity
+                redirectToFacultyActivity(userId, userName, email);
+            } else {
+                // User does not exist , save user data to Realtime Database
+                saveUserDataToRealtimeDatabase(userId, email, userName,profilePhotoUrl);
+            }
+        });
+    }
+
+
+    private void saveUserDataToRealtimeDatabase(String userId, String email, String userName,String profilePhotoUrl) {
+        // Create a map for the researcher data
+        Map<String, Object> researcherData = new HashMap<>();
+        researcherData.put("email", email);
+        researcherData.put("profile_photo",profilePhotoUrl);
+        researcherData.put("name", userName);
+        researcherData.put("department", ""); // Set default or empty department
+        researcherData.put("designation", ""); // Set default or empty designation
+        researcherData.put("projects", new HashMap<>());
+
+        String[] uniqueId = userName.split(" ");
+        // Save the researcher data under the "researchers" node
+        databaseReference.child(uniqueId[0]).setValue(researcherData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.i("RealtimeDatabase", "Researcher data saved successfully");
+                    redirectToDesignationActivity(userId, userName, email, researcherData.get("projects"),profilePhotoUrl); // Pass email to Designation activity
+                })
+                .addOnFailureListener(e -> Log.e("RealtimeDatabase", "Failed to save researcher data", e));
+    }
+    private void redirectToFacultyActivity(String userId, String userName, String email) {
+        Intent intent = new Intent(LoginResearcher.this, Faculty.class); // Replace with your Faculty activity class
+        intent.putExtra("USER_ID", userId); // Pass the user ID to Faculty activity
+        intent.putExtra("USER_NAME", userName); // Pass the user name
+        intent.putExtra("EMAIL", email); // Pass the email
+        startActivity(intent);
+        finish();
+    }
+
+    private void redirectToDesignationActivity(String userId, String userName, String email, Object projects,String profilePhotoUrl) {
+        Intent intent = new Intent(LoginResearcher.this, Designation.class);
+        intent.putExtra("USER_ID", userId); // Pass the user ID to Designation
+        intent.putExtra("USER_NAME", userName); // Pass the user name
+        intent.putExtra("EMAIL", email); // Pass the email
+        intent.putExtra("PROJECTS", (HashMap<String, Object>) projects); // Pass the projects to Designation
+        intent.putExtra("profile_photo",profilePhotoUrl);
+        startActivity(intent);
+        finish();
     }
 
     private void startGoogleSignIn() {
@@ -118,54 +175,16 @@ public class LoginResearcher extends AppCompatActivity {
         firebaseAuth.signInWithCredential(GoogleAuthProvider.getCredential(account.getIdToken(), null))
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && firebaseAuth.getCurrentUser () != null) {
-                        checkIfUserExists(firebaseAuth.getCurrentUser ().getUid(), account.getEmail(), account.getPhotoUrl());
+                        String userId = firebaseAuth.getCurrentUser ().getUid();
+                        String userName = account.getDisplayName(); // Get the user's name
+                        String email = account.getEmail();
+                        String profilePhotoUrl = account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : null; // Get the user's profile photo URL
+
+                        checkIfUserExists(userId, email, userName, profilePhotoUrl); // Check if user exists in Realtime Database
                     } else {
                         showSnackbar("Google Sign-In Failed: " + (task.getException() != null ? task.getException().getMessage() : ""), false);
                     }
                 });
-    }
-
-    private void checkIfUserExists(String userId, String email, Uri photoUri) {
-        DocumentReference docRef = firestore.collection("faculty").document(userId);
-        docRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                // User exists, redirect to Faculty
-                redirectToActivity(Faculty.class);
-            } else {
-                // User does not exist, save user data and redirect to Designation
-                saveUserDataToFirestore(userId, email, photoUri);
-                redirectToActivity(Designation.class);
-            }
-        }).addOnFailureListener(e -> Log.e("Firestore", "Failed to check user existence: " + e.getMessage()));
-    }
-
-    private void saveUserDataToFirestore(String userId, String email, Uri photoUri) {
-        DocumentReference docRef = firestore.collection("faculty").document(userId);
-
-        // Generate a unique ID (you can customize this as needed)
-        String uniqueId = userId + "_" + System.currentTimeMillis(); // Example: userId_timestamp
-
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("email", email);
-        userData.put("name", firebaseAuth.getCurrentUser ().getDisplayName());
-        userData.put("uniqueId", uniqueId); // Store the unique ID
-        if (photoUri != null) {
-            userData.put("profile_photo", photoUri.toString());
-        }
-
-        docRef.set(userData)
-                .addOnSuccessListener(aVoid -> {
-                    Log.i("Firestore", "User  data saved successfully");
-                    // After saving user data, redirect to AdminActivity
-                    redirectToActivity(AdminActivity.class);
-                })
-                .addOnFailureListener(e -> Log.e("Firestore", "Failed to save user data", e));
-    }
-
-    private void redirectToActivity(Class<?> activityClass) {
-        Intent intent = new Intent(LoginResearcher.this, activityClass);
-        startActivity(intent);
-        finish();
     }
 
     private void openEmailApp() {

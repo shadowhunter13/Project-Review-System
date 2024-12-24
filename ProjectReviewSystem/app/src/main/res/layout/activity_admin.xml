@@ -62,7 +62,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginBottom="3dp"
-                android:src="@drawable/review" />
+                android:src="@drawable/total" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -96,7 +96,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginBottom="3dp"
-                android:src="@drawable/total" />
+                android:src="@drawable/pending" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -132,7 +132,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginBottom="3dp"
-                android:src="@drawable/pending" />
+                android:src="@drawable/done" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -168,7 +168,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginBottom="3dp"
-                android:src="@drawable/done" />
+                android:src="@drawable/reject3" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -234,7 +234,7 @@
                             android:layout_marginStart="10dp"
                             android:background="@drawable/circle_background"
                             android:scaleType="centerCrop"
-                            android:src="@drawable/done" />
+                            android:src="@drawable/image" />
 
                         <TextView
                             android:id="@+id/textView1"
@@ -264,7 +264,7 @@
                             android:textColor="@color/colorOnBackground"
                             android:textSize="16sp" />
                         <TextView
-                            android:id="@+id/unique_id_text_view"
+                            android:id="@+id/unique_id_text_view_233"
                             android:layout_width="0dp"
                             android:layout_height="0dp"
                             android:visibility="gone" />
@@ -301,7 +301,7 @@
                         android:layout_marginStart="10dp"
                         android:background="@drawable/circle_background"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/done" />
+                        android:src="@drawable/image" />
 
                     <TextView
                         android:id="@+id/textView2"
@@ -370,7 +370,7 @@
                             android:layout_marginStart="10dp"
                             android:background="@drawable/circle_background"
                             android:scaleType="centerCrop"
-                            android:src="@drawable/done" />
+                            android:src="@drawable/image" />
 
                         <TextView
                             android:id="@+id/textView3"
@@ -438,7 +438,7 @@
                         android:layout_marginStart="10dp"
                         android:background="@drawable/circle_background"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/done" />
+                        android:src="@drawable/image" />
 
                     <TextView
                         android:id="@+id/textView4"
@@ -505,7 +505,7 @@
                             android:layout_marginStart="10dp"
                             android:background="@drawable/circle_background"
                             android:scaleType="centerCrop"
-                            android:src="@drawable/done" />
+                            android:src="@drawable/image" />
 
                         <TextView
                             android:id="@+id/textView5"
@@ -573,7 +573,7 @@
                         android:layout_marginStart="10dp"
                         android:background="@drawable/circle_background"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/done" />
+                        android:src="@drawable/image" />
 
                     <TextView
                         android:id="@+id/textView6"

@@ -46,6 +46,9 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
     private String selectedStatus = "";
     private String selectedDate = "";
 
+    private int updatedDoneCount,updatedTotalProjectsCount,updatedInReviewCount;
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -68,6 +71,10 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
             docId = getArguments().getString("docId");
             String description = getArguments().getString("description");
             String deadline = getArguments().getString("deadline");
+
+            updatedDoneCount = Integer.parseInt(getArguments().getString("doneCount")) ;
+            updatedTotalProjectsCount = Integer.parseInt(getArguments().getString("totalProjects"));
+            updatedInReviewCount = Integer.parseInt(getArguments().getString("totalInReviewCount"));
 
             pdfNameTextView.setText(description);
             deadlineTextView.setText("Deadline: " + deadline);
@@ -125,63 +132,79 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
             requestStatus.put("status", selectedStatus);
             requestStatus.put("comments", commentsEditText.getText().toString());
             requestStatus.put("completionDate", selectedDate);
-            // Add other necessary fields...
 
             // Get the current user's ID
             String userId = auth.getCurrentUser ().getUid();
 
-            // Fetch user details from Firestore
-            firestore.collection("faculty").document(userId).get()
-                    .addOnSuccessListener(userDocument -> {
-                        if (userDocument.exists()) {
-                            // Add user details to the request status
-                            String facultyName = userDocument.getString("name");
-                            String facultyImageUrl = userDocument.getString("profile_photo");
-                            requestStatus.put("facultyName", facultyName);
-                            requestStatus.put("facultyIcon", facultyImageUrl);
+            // Add user details to the request status
+            String facultyName = "Faculty"; // You can fetch actual faculty name if needed
+            requestStatus.put("facultyName", facultyName);
 
-                            // Reference to the admin notifications collection
-                            DocumentReference adminNotificationsRef = firestore.collection("admin_notifications").document(requestId);
+            // Create the notification message
+            String pdfName = pdfNameTextView.getText().toString(); // Get the PDF name
+            String notificationMessage = facultyName + " has " + selectedStatus + " the PDF: " + pdfName;
+            requestStatus.put("notificationMessage", notificationMessage); // Add the notification message
 
-                            // Use a transaction to safely check and add the request status
-                            firestore.runTransaction(transaction -> {
-                                // Check if the request already exists
-                                DocumentSnapshot existingRequest = transaction.get(adminNotificationsRef);
-                                if (existingRequest.exists()) {
-                                    // If it exists, throw an exception to abort the transaction
-                                    throw new FirebaseFirestoreException("Request already exists", FirebaseFirestoreException.Code.ABORTED);
-                                }
+            // Reference to the admin notifications collection
+            DocumentReference adminNotificationsRef = firestore.collection("admin_notifications").document(requestId);
 
-                                // If it doesn't exist, add the new request
-                                transaction.set(adminNotificationsRef, requestStatus);
-                                return null; // Return null as we are not returning any value from the transaction
-                            }).addOnSuccessListener(aVoid -> {
-                                Log.d("ReviewedPdfDialog", "Status sent to admin_notifications successfully");
-                                Toast.makeText(getContext(), "Request status updated successfully", Toast.LENGTH_SHORT).show();
-                                // Notify the Faculty class to refresh counts
-                                if (statusSelectedListener != null) {
-                                    statusSelectedListener.onStatusSelected(selectedStatus, 0, 0, 0); // Adjust as needed
-                                }
-                                dismiss(); // Close the dialog
-                            }).addOnFailureListener(e -> {
-                                Log.w("ReviewedPdfDialog", "Error sending status to admin_notifications", e);
-                                Toast.makeText(getContext(), "Error sending status to admin_notifications", Toast.LENGTH_SHORT).show();
-                            });
-                        } else {
-                            Log.w("ReviewedPdfDialog", "User  document does not exist");
-                            Toast.makeText(getContext(), "User  information could not be retrieved", Toast.LENGTH_SHORT).show();
-                        }
-                    }).addOnFailureListener(e -> {
-                        Log.w("ReviewedPdfDialog", "Error fetching user details", e);
-                        Toast.makeText(getContext(), "Error fetching user details", Toast.LENGTH_SHORT).show();
-                    });
+            // Use a transaction to safely check and add the request status
+            firestore.runTransaction(transaction -> {
+                // Check if the request already exists
+                DocumentSnapshot existingRequest = transaction.get(adminNotificationsRef);
+                if (existingRequest.exists()) {
+                    // If it exists, throw an exception to abort the transaction
+                    throw new FirebaseFirestoreException("Request already exists", FirebaseFirestoreException.Code.ABORTED);
+                }
+
+                // If it doesn't exist, add the new request
+                transaction.set(adminNotificationsRef, requestStatus);
+                return null; // Return null as we are not returning any value from the transaction
+            }).addOnSuccessListener(aVoid -> {
+                Log.d("ReviewedPdfDialog", "Status sent to admin_notifications successfully");
+                Toast.makeText(getContext(), "Request status updated successfully", Toast.LENGTH_SHORT).show();
+
+                // Notify the Faculty class to refresh counts
+                if (statusSelectedListener != null) {
+//                    long updatedDoneCount = 0;
+//                    long updatedInReviewCount = 0;
+//                    long updatedTotalProjectsCount = 0;
+
+                    // Adjust counts based on the selected status
+//                    if (selectedStatus.equals("approved")) {
+//                        updatedDoneCount += 1; // Increment done count
+//                        updatedInReviewCount -= 1; // Decrement in review count
+////                        updatedTotalProjectsCount -=1; // Decrement total projects count
+//                    } else if (selectedStatus.equals("removed")) {
+//                        updatedInReviewCount -= 1; // Decrement in review count
+////                        updatedTotalProjectsCount -= 1; // Decrement total projects count
+//                    } else if (selectedStatus.equals("changes required")) {
+//                        // Handle changes required if necessary
+//                    }
+
+                    updatedDoneCount += 1;
+                    updatedInReviewCount -= 1;
+
+                    if(updatedInReviewCount < 0){
+                        updatedInReviewCount = 0;
+                    }
+                    if(updatedTotalProjectsCount<0){
+                        updatedTotalProjectsCount = 0;
+                    }
+
+                    statusSelectedListener.onStatusSelected(selectedStatus, updatedDoneCount, updatedInReviewCount, updatedTotalProjectsCount);
+                }
+                dismiss(); // Close the dialog
+            }).addOnFailureListener(e -> {
+                Log.w("ReviewedPdfDialog", "Error sending status to admin_notifications", e);
+                Toast.makeText(getContext(), "Error sending status to admin_notifications", Toast.LENGTH_SHORT).show();
+            });
         } else {
             Toast.makeText(getContext(), "Please select a status", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void sendStatusToAdmin(Map<String, Object> requestStatus) {
-        // Send the request status to the admin_notifications collection
         firestore.collection("admin_notifications").add(requestStatus)
                 .addOnSuccessListener(documentReference -> {
                     Log.d("ReviewedPdfDialog", "Status sent to admin_notifications successfully: " + documentReference.getId());
@@ -211,7 +234,7 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
             requestSentListener = (OnRequestSentListener) context;
         }
         if (context instanceof OnStatusSelectedListener) {
-            statusSelectedListener = (OnStatusSelectedListener) context; // Attach the status listener
+            statusSelectedListener = (OnStatusSelectedListener) context;
         } else {
             throw new RuntimeException(context.toString() + " must implement OnStatusSelectedListener");
         }
@@ -222,7 +245,7 @@ public class ReviewedPdfDialogFragment extends BottomSheetDialogFragment {
     }
 
     public interface OnStatusSelectedListener {
-        void onStatusSelected(String status, long doneCount, long inReviewCount, long totalProjectsCount); // Add parameters for updated counts
+        void onStatusSelected(String status, int doneCount, int inReviewCount, int totalProjectsCount); // Add parameters for updated counts
     }
     // In Faculty class
 

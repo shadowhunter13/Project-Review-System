@@ -25,6 +25,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -53,6 +58,8 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
     private static final String KEY_PENDING_COUNT = "pendingCount";
     private static final String KEY_IN_REVIEW_COUNT = "inReviewCount";
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private DatabaseReference databaseReference; // Reference to the Realtime Database
+
 
     private EditText totalPendingEditText;
     private EditText totalProjectsEditText;
@@ -72,24 +79,26 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_faculty);
 
-        // Initialize SharedPreferences
-//        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        // Initialize views
+//        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        databaseReference = FirebaseDatabase.getInstance().getReference("researchers"); // Reference to the "researchers" node
+
+
         initializeViews();
         firestore = FirebaseFirestore.getInstance();
+        String userName = getIntent().getStringExtra("USER_NAME");
 
-        // Load initial data
-        loadAcceptedRequests();
-        listenForCurrentRequest();
+        listenForCurrentRequest(userName);
+
+        loadAcceptedRequests(userName);
+
+
 //        loadCountsFromPreferences();
         updateDashboardCounts();
 
 
-        // Set up notification icon click listener
-        notificationIcon.setOnClickListener(v -> handleNotificationIconClick());
+        notificationIcon.setOnClickListener(v -> handleNotificationIconClick(userName));
 
-        // Set up done button click listener
         doneButton.setOnClickListener(v -> handleDoneButtonClick());
     }
 
@@ -119,11 +128,10 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 //        editor.apply();
 //    }
 
-    private void handleNotificationIconClick() {
+    private void handleNotificationIconClick(String userName) {
         if (!pendingRequests.isEmpty()) {
             Request request = pendingRequests.get(0);
-            showRequestDialog(request.getDocId(), request.getDescription(), request.getDeadline(), request.getDocumentUrl());
-            // Optionally, you might want to remove the request from pendingRequests instead of clearing it
+            showRequestDialog(userName,request.getDocId(), request.getDescription(), request.getDeadline(), request.getDocumentUrl());
             pendingRequests.remove(0); // Remove the request after handling it
         } else {
             Toast.makeText(this, "No current requests available.", Toast.LENGTH_SHORT).show();
@@ -146,24 +154,23 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         args.putString("docId", docId);
         args.putString("description", description);
         args.putString("deadline", deadline);
+        args.putString("doneCount",""+doneCount);
+        args.putString("totalProjects",""+totalProjects);
+        args.putString("totalInReviewCount",""+totalInReviewCount);
+
         dialogFragment.setArguments(args);
         dialogFragment.show(getSupportFragmentManager(), "ReviewedPdfDialog");
     }
     @Override
-    public void onStatusSelected(String status, long updatedDoneCount , long updatedInReviewCount, long updatedTotalProjectsCount){
+    public void onStatusSelected(String status, int updatedDoneCount, int updatedInReviewCount, int updatedTotalProjectsCount) {
         Log.d("Faculty", "Status selected: " + status);
 
-        this.doneCount = (int) updatedDoneCount;
+        // Update the counts based on the values received from the dialog
+        this.doneCount = updatedDoneCount; // Increment done count
+        this.totalInReviewCount = updatedInReviewCount; // Update in review count
+        this.totalProjects = updatedTotalProjectsCount; // Update total projects count
 
-        if (this.totalInReviewCount > 0) {
-            this.totalInReviewCount--;
-        }
-
-        if (this.totalProjects > 0) {
-            this.totalProjects--; // Decrement total projects count
-        }
-
-        // Update the dashboard counts (if you still want to show the updated done count)
+        // Update the dashboard counts
         updateDashboardCounts();
 
         // Log the updated counts for debugging
@@ -176,57 +183,126 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         // Handle request sent logic if needed
     }
 
-    private void loadAcceptedRequests() {
-        FirebaseUser  user = FirebaseAuth.getInstance().getCurrentUser ();
-        if (user == null) {
-            Toast.makeText(this, "You need to be logged in to access this feature.", Toast.LENGTH_SHORT).show();
-            return; // Exit if the user is not authenticated
-        }
+    private void loadAcceptedRequests(String userName) {
+//        FirebaseUser  user = FirebaseAuth.getInstance().getCurrentUser ();
+//        if (user == null) {
+//            Toast.makeText(this, "You need to be logged in to access this feature.", Toast.LENGTH_SHORT).show();
+//            return; // Exit if the user is not authenticated
+//        }
+//
+//        firestore.collection("requests")
+//                .whereEqualTo("status", "accepted")
+//                .addSnapshotListener((snapshots, e) -> {
+//                    if (e != null || snapshots == null) return;
+//
+//                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
+//                        if (dc.getType() == DocumentChange.Type.ADDED) {
+//                            String docId = dc.getDocument().getId();
+//                            String fileName = dc.getDocument().getString("fileName");
+//                            String deadline = dc.getDocument().getString("deadline");
+//                            String documentUrl = dc.getDocument().getString("fileUri");
+//
+//                            if (!acceptedPdfEntries.containsKey(docId)) {
+//                                addAcceptedPdfEntry(fileName, deadline, docId, documentUrl);
+//                            }
+//                        }
+//                    }
+//                });
+        Log.d("aman", "username: "+ userName);
+        String[] s = userName.split(" ");
+        String uniqueId = s[0];
+        String profileUrl;
 
-        firestore.collection("requests")
-                .whereEqualTo("status", "accepted")
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) return;
 
-                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                        if (dc.getType() == DocumentChange.Type.ADDED) {
-                            String docId = dc.getDocument().getId();
-                            String fileName = dc.getDocument().getString("fileName");
-                            String deadline = dc.getDocument().getString("deadline");
-                            String documentUrl = dc.getDocument().getString("fileUri");
 
-                            if (!acceptedPdfEntries.containsKey(docId)) {
-                                addAcceptedPdfEntry(fileName, deadline, docId, documentUrl);
+
+        databaseReference.child(uniqueId+"/projects")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            int facultyCount = 1;
+                            for (DataSnapshot facultySnapshot : dataSnapshot.getChildren()) {
+                                String userId = facultySnapshot.getKey();
+//                                DataSnapshot projectSnapshot = facultySnapshot.child("projects").child("uhgb");
+                                String fileName = facultySnapshot.child("title").getValue(String.class);
+                                String deadline =  facultySnapshot.child("deadline").getValue(String.class);
+                                String project = facultySnapshot.child("projectUrl").getValue(String.class);
+                                String status = facultySnapshot.child("status").getValue(String.class);
+                                if(status.equals("accepted")){
+                                    Log.e("aman_log", status);
+                                    totalProjects += 1;
+                                    addAcceptedPdfEntry(fileName, deadline, userId, project);
+
+                                }
+                                else {
+                                    Log.d("aman-log", "No record found");
+                                }
+
+//                                if (!acceptedPdfEntries.containsKey(userId)) {
+//                               addAcceptedPdfEntry(fileName, deadline, userId, project);
+//                                }
                             }
+                        } else {
+                            Log.e("AdminActivity", "No faculty data found.");
                         }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e("AdminActivity", "Error fetching faculty data: ", databaseError.toException());
                     }
                 });
     }
 
-    private void listenForCurrentRequest() {
-        firestore.collection("requests")
-                .whereEqualTo("status", "pending") // Assuming "pending" means it's a new request
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null || snapshots == null) return;
+    private void listenForCurrentRequest(String userName) {
+        String[] s = userName.split(" ");
+        String uniqueId = s[0];
+        databaseReference.child(uniqueId+"/projects")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
 
-                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                        if (dc.getType() == DocumentChange.Type.ADDED) {
-                            String docId = dc.getDocument().getId();
-                            String description = dc.getDocument().getString("description");
-                            String deadline = dc.getDocument().getString("deadline");
-                            String documentUrl = dc.getDocument().getString("fileUri");
 
-                            // Create a new Request object and add it to the list
-                            Request newRequest = new Request(docId, description, deadline, documentUrl);
-                            pendingRequests.add(newRequest); // Add to the pendingRequests list
-                            pendingCount++; // Increment pending count
-                            lastNotificationCount++; // Increment notification count
-                            updateNotificationCount(lastNotificationCount);
-                            totalPendingEditText.setText(String.valueOf(pendingCount));
-                            Log.d("Faculty", "New pending request added: " + docId);
+                            pendingRequests.clear(); // Clear the existing list to avoid duplicates
+                            pendingCount = 0; // Reset pending count
+
+                            for (DataSnapshot requestSnapshot : dataSnapshot.getChildren()) {
+                                String status= requestSnapshot.child("status").getValue(String.class);
+                                if(status.equals("pending")){
+                                    String docId = requestSnapshot.getKey();
+                                    String description = requestSnapshot.child("description").getValue(String.class);
+                                    String deadline = requestSnapshot.child("deadline").getValue(String.class);
+                                    String documentUrl = requestSnapshot.child("fileUri").getValue(String.class);
+
+                                    // Create a new Request object and add it to the list
+                                    Request newRequest = new Request(docId, description, deadline, documentUrl);
+                                    pendingRequests.add(newRequest); // Add to the pendingRequests list
+                                    pendingCount++; // Increment pending count
+                                    lastNotificationCount++; // Increment notification count
+                                    updateNotificationCount(lastNotificationCount);
+                                    totalPendingEditText.setText(String.valueOf(pendingCount));
+                                    Log.d("Faculty", "Pending requests updated. Total: " + pendingCount);
+                                }
+
+
+                            }
+
+
+                        } else {
+                            Log.d("Faculty", "No pending requests found.");
                         }
                     }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e("Faculty", "Error fetching pending requests: ", databaseError.toException());
+                    }
                 });
+
+//        loadAcceptedRequests(userName);
+
     }
 
     private void updateNotificationCount(int count) {
@@ -239,7 +315,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         }
     }
 
-    private void showRequestDialog(String docId, String description, String deadline, String documentUrl) {
+    private void showRequestDialog(String userName ,String docId, String description, String deadline, String documentUrl) {
         requestDialog = new BottomSheetDialog(this);
         View dialogView = getLayoutInflater().inflate(R.layout.request_dialog, null);
         requestDialog.setContentView(dialogView);
@@ -252,9 +328,12 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         descriptionTextView.setText(description);
         deadlineTextView.setText(deadline);
 
+        String[] s = userName.split(" ");
+        String userId = s[0];
 //        descriptionTextView.setOnClickListener(v -> acceptRequest(docId));
-        acceptButton.setOnClickListener(v -> updateRequestStatus(docId, "accepted", deadline));
-        rejectButton.setOnClickListener(v -> updateRequestStatus(docId, "rejected", null));
+        acceptButton.setOnClickListener(v -> updateRequestStatus(userId ,docId, "accepted", deadline));
+        Log.e("aman1", userId+docId);
+        rejectButton.setOnClickListener(v -> updateRequestStatus(userId, docId, "rejected", null));
 
         requestDialog.show();
     }
@@ -353,59 +432,72 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
                 }
             }
         }
-    private void updateRequestStatus(String docId, String status, @Nullable String deadline) {
+    private void updateRequestStatus(String userName, String docId, String status, @Nullable String deadline) {
         Log.d("Faculty", "Attempting to update request status for Document ID: " + docId + " with deadline: " + deadline);
 
-        firestore.collection("requests").document(docId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Log.d("Faculty", "Document found: " + docId);
-                        String currentStatus = documentSnapshot.getString("status");
-                        if (!currentStatus.equals(status)) {
-                            firestore.collection("requests").document(docId)
-                                    .update("status", status)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d("Faculty", "Successfully updated Document ID: " + docId + " to status: " + status);
-                                        Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
+        DatabaseReference requestRef = databaseReference.child(userName + "/projects/" + docId);
+        Log.e("alokik", userName + "/projects/" + docId);
 
-                                        // Remove the request from pendingRequests
-                                        removePendingRequest(docId);
+        requestRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Log.d("Faculty", "Document found: " + docId);
+                    String currentStatus = dataSnapshot.child("status").getValue(String.class);
+                    if (!currentStatus.equals(status)) {
+                        requestRef.child("status").setValue(status)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("Faculty", "Successfully updated Document ID: " + docId + " to status: " + status);
+                                    Toast.makeText(Faculty.this, "Request " + status, Toast.LENGTH_SHORT).show();
 
-                                        // Decrement pending count only if the request is accepted or rejected
-                                        if (status.equals("accepted") || status.equals("rejected")) {
-                                            pendingCount--; // Decrement pending count
-                                            totalPendingEditText.setText(String.valueOf(pendingCount)); // Update the EditText
-                                            lastNotificationCount--; // Decrement notification count
-                                            updateNotificationCount(lastNotificationCount); // Update notification count
+                                    // Remove the request from pendingRequests
+                                    removePendingRequest(docId);
+
+                                    // Decrement pending count only if the request is accepted or rejected
+                                    if (status.equals("accepted") || status.equals("rejected")) {
+                                        pendingCount--; // Decrement pending count
+                                        if(pendingCount<0){
+                                            pendingCount = 0;
                                         }
+                                        totalPendingEditText.setText(String.valueOf(pendingCount)); // Update the EditText
+                                        lastNotificationCount--; // Decrement notification count
+                                        updateNotificationCount(lastNotificationCount); // Update notification count
+                                    }
 
-                                        if (status.equals("accepted")) {
-                                            totalInReviewCount++;
-                                            totalProjects++;
-                                        }
+                                    if (status.equals("accepted")) {
+                                        totalInReviewCount++;
+                                        totalProjects++;
 
-                                        updateDashboardCounts();
-//                                        notifyAdminOfResponse(docId, status);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("Faculty", "Failed to update request status: " + e.getMessage());
-                                        Toast.makeText(Faculty.this, "Failed to update request status. Please try again.", Toast.LENGTH_SHORT).show();
-                                    });
-                        } else {
-                            Log.d("Faculty", "Document ID: " + docId + " already has status: " + status);
-                        }
+                                        // Fetch the project details to display the PDF entry
+                                        String pdfName = dataSnapshot.child("title").getValue(String.class);
+                                        String documentUrl = dataSnapshot.child("fileUri").getValue(String.class);
+                                        displayAcceptedPdfEntry(pdfName, deadline, docId, documentUrl);
+                                    }
+
+                                    updateDashboardCounts();
+                                    // Optionally notify the admin of the response
+                                    notifyAdminOfResponse(docId, status, userName);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("Faculty", "Failed to update request status: " + e.getMessage());
+                                    Toast.makeText(Faculty.this, "Failed to update request status. Please try again.", Toast.LENGTH_SHORT).show();
+                                });
                     } else {
-                        Log.e("Faculty", "Document does not exist: " + docId);
-                        Toast.makeText(Faculty.this, "Request not found. Please refresh and try again.", Toast.LENGTH_SHORT).show();
+                        Log.d("Faculty", "Document ID: " + docId + " already has status: " + status);
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("Faculty", "Failed to retrieve document: " + e.getMessage());
-                    Toast.makeText(Faculty.this, "Failed to retrieve request. Please try again.", Toast.LENGTH_SHORT).show();
-                });
-    }
+                } else {
+                    Log.e("Faculty", "Document does not exist: " + docId);
+                    Toast.makeText(Faculty.this, "Request not found. Please refresh and try again.", Toast.LENGTH_SHORT).show();
+                }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("Faculty", "Failed to retrieve document: " + databaseError.getMessage());
+                Toast.makeText(Faculty.this, "Failed to retrieve request. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
     private void removePendingRequest(String docId) {
         boolean removed = pendingRequests.removeIf(request -> request.getDocId().equals(docId));
         if (removed) {
@@ -415,7 +507,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         }
     }
 
-    private void addAcceptedPdfEntry(String pdfName, String deadline, String docId, String documentUrl) {
+    private void addAcceptedPdfEntry(String pdfName, String deadline, String docId, String status) {
         LinearLayout pdfEntry = new LinearLayout(this);
         pdfEntry.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -441,14 +533,14 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
             fetchAndOpenPdf(docId);
         });
 
-        TextView timerTextView = new TextView(this);
-        timerTextView.setText("00:00:00");
-        timerTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-        timerTextView.setTextSize(14);
+//        TextView timerTextView = new TextView(this);
+//        timerTextView.setText("00:00:00");
+//        timerTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+//        timerTextView.setTextSize(14);
 
         TextView deadlineTextView = new TextView(this);
         if (deadline != null) {
-            deadlineTextView.setText(formatDeadline(deadline));
+            deadlineTextView.setText(deadline);
         } else {
             deadlineTextView.setText("No deadline set");
         }
@@ -456,7 +548,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         deadlineTextView.setTextSize(14);
 
         pdfInfo.addView(pdfNameTextView);
-        pdfInfo.addView(timerTextView);
+//        pdfInfo.addView(timerTextView);
         pdfInfo.addView(deadlineTextView);
 
         Button sendButton = new Button(this);
@@ -475,7 +567,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         pdfEntry.addView(sendButton);
         pdfContainer.addView(pdfEntry);
         acceptedPdfEntries.put(docId, pdfEntry);
-        startCountdownTimer(deadline, timerTextView);
+//        startCountdownTimer(deadline, timerTextView);
     }
 
     // added new for 439
@@ -516,66 +608,66 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
         }
     }
 
-    private void startCountdownTimer(String deadline, TextView timerTextView) {
-        if (deadline == null) {
-            timerTextView.setText("Invalid deadline");
-            return;
-        }
-
-        try {
-            long endTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(deadline).getTime();
-            long currentTime = System.currentTimeMillis();
-            long timeLeft = endTime - currentTime;
-
-            if (timeLeft > 0) {
-                CountDownTimer countDownTimer = new CountDownTimer(timeLeft, 1000) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {
-                        int days = (int) (millisUntilFinished / (1000 * 60 * 60 * 24));
-                        int hours = (int) (millisUntilFinished % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
-                        int minutes = (int) ((millisUntilFinished % (1000 * 60 * 60)) / (1000 * 60));
-                        int seconds = (int) (millisUntilFinished % (1000 * 60) / 1000);
-                        timerTextView.setText(String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds));
-                    }
-
-                    @Override
-                    public void onFinish() {
-                        timerTextView.setText("00:00:00");
-                    }
-                }.start();
-            } else {
-                timerTextView.setText("Deadline has passed");
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-            timerTextView.setText("Invalid deadline");
-        }
-    }
-//    private void notifyAdminOfResponse(String docId, String status) {
-//        // Get the current user's ID
-//        String facultyId = FirebaseAuth.getInstance().getCurrentUser ().getUid(); // Fetch the current user's ID
+//    private void startCountdownTimer(String deadline, TextView timerTextView) {
+//        if (deadline == null) {
+//            timerTextView.setText("Invalid deadline");
+//            return;
+//        }
 //
-//        // Fetch faculty details from the "faculty" collection using the faculty ID
+//        try {
+//            long endTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(deadline).getTime();
+//            long currentTime = System.currentTimeMillis();
+//            long timeLeft = endTime - currentTime;
+//
+//            if (timeLeft > 0) {
+//                CountDownTimer countDownTimer = new CountDownTimer(timeLeft, 1000) {
+//                    @Override
+//                    public void onTick(long millisUntilFinished) {
+//                        int days = (int) (millisUntilFinished / (1000 * 60 * 60 * 24));
+//                        int hours = (int) (millisUntilFinished % (1000 * 60 * 60 * 24) / (1000 * 60 * 60));
+//                        int minutes = (int) ((millisUntilFinished % (1000 * 60 * 60)) / (1000 * 60));
+//                        int seconds = (int) (millisUntilFinished % (1000 * 60) / 1000);
+//                        timerTextView.setText(String.format("%d days %02d:%02d:%02d", days, hours, minutes, seconds));
+//                    }
+//
+//                    @Override
+//                    public void onFinish() {
+//                        timerTextView.setText("00:00:00");
+//                    }
+//                }.start();
+//            } else {
+//                timerTextView.setText("Deadline has passed");
+//            }
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//            timerTextView.setText("Invalid deadline");
+//        }
+//    }
+    private void notifyAdminOfResponse(String docId, String status, String facultyName) {
+        // Get the current user's ID
+        String facultyId = FirebaseAuth.getInstance().getCurrentUser ().getUid(); // Fetch the current user's ID
+
+        // Fetch faculty details from the "faculty" collection using the faculty ID
 //        firestore.collection("faculty").document(facultyId)
 //                .get()
 //                .addOnSuccessListener(documentSnapshot -> {
 //                    if (documentSnapshot.exists()) {
 //                        String facultyName = documentSnapshot.getString("name");
 //                        String facultyIcon = documentSnapshot.getString("iconUrl");
-//
-//                        // Prepare the notification data
-//                        Map<String, Object> responseNotification = new HashMap<>();
-//                        responseNotification.put("requestId", docId);
-//                        responseNotification.put("status", status);
-//                        responseNotification.put("facultyName", facultyName); // Use actual faculty name
+
+                        // Prepare the notification data
+                        Map<String, Object> responseNotification = new HashMap<>();
+                        responseNotification.put("requestId", docId);
+                        responseNotification.put("status", status);
+                        responseNotification.put("facultyName", facultyName); // Use actual faculty name
 //                        responseNotification.put("facultyIcon", facultyIcon); // Use actual faculty icon URL
-//
-//                        // Send notification to admin
-//                        firestore.collection("admin_notifications").add(responseNotification)
-//                                .addOnSuccessListener(aVoid -> {
-//                                    Log.d("Faculty", "Notification sent to admin for Document ID: " + docId + " with status: " + status);
-//                                })
-//                                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to notify admin", Toast.LENGTH_SHORT).show());
+
+                        // Send notification to admin
+                        firestore.collection("admin_notifications").add(responseNotification)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("Faculty", "Notification sent to admin for Document ID: " + docId + " with status: " + status);
+                                })
+                                .addOnFailureListener(e -> Toast.makeText(Faculty.this, "Failed to notify admin", Toast.LENGTH_SHORT).show());
 //                    } else {
 //                        Log.e("Faculty", "Faculty document does not exist.");
 //                    }
@@ -583,7 +675,7 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 //                .addOnFailureListener(e -> {
 //                    Log.e("Faculty", "Failed to retrieve faculty details: " + e.getMessage());
 //                });
-//    }
+    }
 
 
 //    @Override
@@ -619,6 +711,10 @@ public class Faculty extends AppCompatActivity implements ReviewedPdfDialogFragm
 //            Toast.makeText(this, "No pending requests available to update.", Toast.LENGTH_SHORT).show();
 //        }
 //    }
+private void displayAcceptedPdfEntry(String pdfName, String deadline, String docId, String documentUrl) {
+    // Add the accepted PDF entry to the UI
+    addAcceptedPdfEntry(pdfName, deadline, docId, documentUrl);
+}
 private void updateDashboardCounts() {
     totalPendingEditText.setText(String.valueOf(pendingCount));
     totalProjectsEditText.setText(String.valueOf(totalProjects)); // Update to show current total projects
