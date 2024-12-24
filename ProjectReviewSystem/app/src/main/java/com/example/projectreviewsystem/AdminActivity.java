@@ -509,50 +509,7 @@ public class AdminActivity extends AppCompatActivity implements ReviewedPdfDialo
 
     private boolean isRequestInProgress = false; // Flag to prevent multiple submissions
 
-//    private void sendNewRequest(String description, String deadline, String documentUrl, String researcherId) { // Add researcherId parameter
-//        databaseReference = FirebaseDatabase.getInstance().getReference("researchers/u01"); // Reference to the "researchers" node
 //
-//        if (isRequestInProgress) {
-//            Toast.makeText(this, "Request is already being processed. Please wait.", Toast.LENGTH_SHORT).show();
-//            return; // Prevent multiple submissions
-//        }
-//
-//        isRequestInProgress = true; // Set the flag to true
-//
-//        SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-//        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
-//        String formattedDeadline;
-//
-//        try {
-//            Date date = inputFormat.parse(deadline);
-//            formattedDeadline = outputFormat.format(date);
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//            Toast.makeText(this, "Invalid deadline format", Toast.LENGTH_SHORT).show();
-//            isRequestInProgress = false; // Reset the flag
-//            return;
-//        }
-//
-//        Map<String, Object> requestData = new HashMap<>();
-//        requestData.put("description", description);
-//        requestData.put("deadline", formattedDeadline);
-//        requestData.put("fileUri", documentUrl);
-//        requestData.put("fileName", getFileName(selectedFileUri));
-//        requestData.put("status", "pending");
-//        requestData.put("researcherId", researcherId); // Add researcher ID to the request data
-//
-//        firestore.collection("requests").add(requestData)
-//                .addOnSuccessListener(documentReference -> {
-//                    Toast.makeText(this, "Request sent successfully", Toast.LENGTH_SHORT).show();
-//                    incrementPendingAndInProgressCounts(); // Increment both counts together
-//                    isRequestInProgress = false; // Reset the flag after processing
-//                })
-//                .addOnFailureListener(e -> {
-//                    Toast.makeText(this, "Failed to send request", Toast.LENGTH_SHORT).show();
-//                    Log.e("AdminActivity", "Error sending request: ", e);
-//                    isRequestInProgress = false; // Reset the flag on failure
-//                });
-//    }
 private void saveProjectDataToRealtimeDatabase(String projectId, String deadline, String description, String Purl, String name) {
     // Create a map for the researcher data
     String[] uniqueId = name.split(" ");
@@ -594,16 +551,6 @@ private void saveProjectDataToRealtimeDatabase(String projectId, String deadline
                 }).addOnSuccessListener(aVoid -> Log.d("AdminActivity", "Pending and In Progress counts incremented successfully"))
                 .addOnFailureListener(e -> Log.e("AdminActivity", "Error incrementing counts", e));
     }
-//    private void incrementPendingCounter() {
-//        DocumentReference docRef = firestore.collection("counters").document("yourDocumentId");
-//        docRef.update("pending", FieldValue.increment(1))
-//                .addOnSuccessListener(aVoid -> {
-//                    Log.d("AdminActivity", "Pending counter incremented successfully");
-//                })
-//                .addOnFailureListener(e -> {
-//                    Log.e("AdminActivity", "Error incrementing pending counter", e);
-//                });
-//    }
 
 
     private void initializeCountersIfNeeded() {
